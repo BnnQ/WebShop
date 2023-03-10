@@ -1,0 +1,36 @@
+.horizontal-list {
+  padding: 0 !important;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.horizontal-list li {
+  margin: 0 10px;
+}
+
+.horizontal-list p,
+.horizontal-list a {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 0;
+  padding: 0.75rem 0.375rem;
+}
+.horizontal-list p {
+  color: black;
+}
+.horizontal-list a {
+  color: #777e90 !important;
+}
+
+.horizontal-list .arrow {
+  color: #666;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 0 10px;
+}
+
+.card-title {
+  margin-bottom: 0 !important;
+}/*# sourceMappingURL=horizontal-list.css.map */

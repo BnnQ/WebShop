@@ -1,0 +1,38 @@
+﻿@model RegistrationViewModel
+@{
+    string? returnUrl = "/";
+    if (Context.Request.Path.HasValue && !Context.Request.Path.ToString().Contains("Account"))
+    {
+        returnUrl = Context.Request.Path + Context.Request.QueryString;
+    }
+}
+
+<form id="registerForm" method="POST" asp-controller="Account" asp-action="Register" asp-route-returnUrl="@returnUrl" style="display: none">
+    @if (!Model.IsModelValid)
+    {
+         <div asp-validation-summary="All" class="text-danger"></div>
+    }
+    <div class="mb-3">
+        <label asp-for="@Model.UserName" class="form-label"></label>
+        <input asp-for="@Model.UserName" autocomplete="off" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label asp-for="@Model.Email" class="form-label"></label>
+        <input asp-for="@Model.Email" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label asp-for="@Model.YearOfBirth" class="form-label"></label>
+        <input asp-for="@Model.YearOfBirth" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label asp-for="@Model.Password" class="form-label"></label>
+        <input asp-for="@Model.Password" autocomplete="off" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label asp-for="@Model.ConfirmPassword" class="form-label"></label>
+        <input asp-for="@Model.ConfirmPassword" autocomplete="off" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary w-100 text-light mt-2" id="registerBtn">
+        Register
+    </button>
+</form>

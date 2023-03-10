@@ -1,0 +1,23 @@
+.slick img {
+  height: 550px !important;
+  -o-object-fit: contain !important;
+     object-fit: contain !important;
+}
+
+.slick-dots {
+  bottom: -30px !important;
+}
+
+.slick-prev,
+.slick-next {
+  color: #000;
+  z-index: 1;
+}
+
+.slick-prev {
+  left: 10px;
+}
+
+.slick-next {
+  right: 10px;
+}/*# sourceMappingURL=product.css.map */

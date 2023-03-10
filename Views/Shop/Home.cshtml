@@ -1,0 +1,111 @@
+﻿@model IEnumerable<BannerImage>
+
+<div id="body" class="container-fluid min-vw-100">
+    <div id="slick-row"
+         class="row align-items-center justify-content-center"
+         style="margin-right: 120px; margin-left: 120px">
+        <div class="container-fluid h-100">
+            <div class="row">
+                <div class="col">
+                    <div class="slick w-100">
+                        @foreach (BannerImage banner in Model)
+                        {
+                            <img src="@banner.FilePath" data-product-id="@(banner.AssociatedProduct?.Id ?? 0)" />
+                        }
+                    </div>
+                </div>
+            </div>
+            <div id="cards-container" class="row g-1 pb-2">
+                <div class="col">
+                    <div class="container-fluid rounded h-100" style="background-color: #e4f2f8">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="d-flex flex-column justify-content-center ps-4 pt-4 pb-4" style="line-height: 1">
+                                    <div class="fs-5 pb-1" style="font-weight: 900">More than 10 years on the market.</div>
+                                    <div class="pt-1" style="font-size: 17px">
+                                        Over 500,000 satisfied customers, we value our reputation.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 p-0">
+                                <img class="w-100 h-100 rounded" src="/media/Images/Icons/iconheadphones.png" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="container-fluid rounded h-100" style="background-color: #daefe1">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="d-flex flex-column justify-content-center ps-4 pt-4 pb-4" style="line-height: 1">
+                                    <div class="fs-5 pb-1" style="font-weight: 900">We work every day 24/7.</div>
+                                    <div class="pt-1" style="font-size: 17px">Call center works around the clock.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 p-0">
+                                <img class="w-100 h-100 rounded" src="/media/Images/Icons/iconalarm.png" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="container-fluid rounded h-100" style="background-color: #f8efcf">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="d-flex flex-column justify-content-center ps-4 pt-4 pb-4" style="line-height: 1">
+                                    <div class="fs-5 pb-1" style="font-weight: 900">Free delivery.</div>
+                                    <div class="pt-1" style="font-size: 17px">
+                                        To all stores in the network, for orders over 500 UAH, and to branches for orders over 2500
+                                        UAH
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 p-0">
+                                <img class="w-100 h-100 rounded" src="/media/Images/Icons/iconscooter.png" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $(".slick").slick({
+                autoplay: true,
+                autoplaySpeed: 3000,
+                speed: 1500,
+                arrows: false,
+                dots: true,
+                slidesToShow: 1,
+                slidesToScroll: 1,
+                draggable: true,
+                infinite: true,
+                responsive: [
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            dots: false,
+                        },
+                    },
+                ],
+            });
+
+            $(".slick img").each(function(_, elem) {
+                let productId = $(elem).data("product-id");
+                if (productId > 0) {
+                    $(elem).hover(function () {
+                        $(this).css("cursor", "pointer");
+                    });
+                    $(elem).click(function() {
+                    let url = '@Url.Action(controller: "Shop", action: "Details", values: new { id = "__id__" })'.replace("__id__", productId);
+                    window.location.replace(url);
+                    });
+                }
+            });
+        });
+    </script>
+}

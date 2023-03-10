@@ -1,0 +1,22 @@
+﻿@model Homework.Data.Entities.Manufacturer
+
+@{
+    ViewData["Title"] = "Details";
+}
+<div id="body" class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-sm-12">
+            <h1>Details</h1>
+            <h4>Manufacturer</h4>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Name)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.Name)
+                </dd>
+            </dl>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,54 @@
+﻿@model UserCreationDto
+
+<div id="body" class="container-fluid">
+    <div class="row">
+        <h1>Create</h1>
+        <h4>User</h4>
+        <hr />
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <form asp-action="Create" method="POST">
+                    <div class="form-group">
+                        <label asp-for="UserName" class="control-label"></label>
+                        <input asp-for="UserName" autocomplete="off" class="form-control" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Email" class="control-label"></label>
+                        <input asp-for="Email" autocomplete="off" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="YearOfBirth" class="control-label"></label>
+                        <input asp-for="YearOfBirth" autocomplete="off" class="form-control" />
+                        <span asp-validation-for="YearOfBirth" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Balance" class="control-label"></label>
+                        <input asp-for="Balance" autocomplete="off" class="form-control" />
+                        <span asp-validation-for="Balance" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Password" class="control-label"></label>
+                        <input asp-for="Password" autocomplete="off" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Roles:</label>
+                        <partial name="_PartialRolesSelectList" model="Model.Roles"></partial>
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" value="Create" class="btn btn-primary w-100" />
+                        <a class="btn btn-secondary w-100" asp-action="List">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

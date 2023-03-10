@@ -1,0 +1,42 @@
+@import "variables";
+
+.horizontal-list {
+  padding: 0 !important;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.horizontal-list li {
+  margin: 0 10px;
+}
+
+.horizontal-list {
+  p,
+  a {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 0;
+    padding: $input-btn-padding-x $input-btn-padding-y;
+  }
+
+  p {
+    color: black;
+  }
+
+  a {
+    color: #777e90 !important;
+  }
+}
+
+.horizontal-list .arrow {
+  color: #666;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 0 10px;
+}
+
+.card-title {
+  margin-bottom: 0 !important;
+}

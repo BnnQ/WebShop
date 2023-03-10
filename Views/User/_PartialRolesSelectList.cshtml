@@ -1,0 +1,13 @@
+﻿@using Homework.ViewModels
+@model IList<RoleCheckBoxViewModel>
+
+<div>
+    @for (byte i = 0; i < Model.Count; i++)
+    {
+        <div>
+            <input type="checkbox" name="Roles[@i].IsChecked" value="true" class="form-check-input" @(Model[i].IsChecked ? "checked" : string.Empty) />
+            <input type="hidden" name="Roles[@i].Name" value="@Model[i].Name" />
+            <label class="form-check-label">@Model[i].Name</label>
+        </div>
+    }
+</div>

@@ -1,0 +1,86 @@
+.card {
+  width: 320px;
+  margin: 20px;
+}
+
+@media (max-width: 1399.98px) {
+  .card {
+    width: 280px;
+  }
+}
+@media (max-width: 279px) {
+  .card {
+    flex-shrink: 1 !important;
+  }
+}
+.card-slider {
+  width: 100%;
+}
+
+.card-slider img {
+  width: 100%;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.rating {
+  margin-bottom: 10px;
+}
+
+.fa-star {
+  font-size: 10px;
+  margin-right: 5px;
+}
+
+.card-text {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.btn-success {
+  background-color: #2ecc71;
+  border: none;
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-success:hover {
+  background-color: #27ae60;
+}
+
+.slick-dots {
+  bottom: -20px !important;
+}
+
+.slick-prev,
+.slick-next {
+  color: #000;
+  z-index: 1;
+}
+
+.slick-prev {
+  left: 10px;
+}
+
+.slick-next {
+  right: 10px;
+}
+
+.slick img {
+  cursor: pointer;
+  height: 200px !important;
+  -o-object-fit: contain;
+     object-fit: contain;
+}/*# sourceMappingURL=list.css.map */

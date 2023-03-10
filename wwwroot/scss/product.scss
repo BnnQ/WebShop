@@ -1,0 +1,22 @@
+.slick img {
+  height: 550px !important;
+  object-fit: contain !important;
+}
+
+.slick-dots {
+  bottom: -30px !important;
+}
+
+.slick-prev,
+.slick-next {
+  color: #000;
+  z-index: 1;
+}
+
+.slick-prev {
+  left: 10px;
+}
+
+.slick-next {
+  right: 10px;
+}

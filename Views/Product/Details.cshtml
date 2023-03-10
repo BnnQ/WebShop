@@ -1,0 +1,99 @@
+﻿@model Homework.Data.Entities.Product
+@{
+    ViewData["Title"] = "Details";
+}
+@section Styles{
+    <style>
+        .slick img {
+            height: 200px !important;
+            -o-object-fit: contain;
+            object-fit: contain;
+        }
+
+        .slick-prev {
+            left: 220px !important;
+        }
+
+        .slick-next {
+            right: 220px !important;
+        }
+
+        .slick-dots {
+            bottom: unset !important;
+        }
+    </style>
+}
+
+<div id="body" class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-sm-12">
+            <h1>Details</h1>
+            <h4>Product</h4>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Title)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.Title)
+                </dd>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Manufacturer)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.Manufacturer.Name)
+                </dd>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Rating)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.Rating)
+                </dd>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Price)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.Price)
+                </dd>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Count)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.Count)
+                </dd>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Category)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.Category.Name)
+                </dd>
+                <dt class="col-sm-2">
+                    Images
+                </dt>
+                <dd class="col-sm-10">
+                    <div class="slick w-100 text-center">
+                        @for (byte i = 0; i < Model.Images.Count; i++)
+                        {
+                            <img src="@Model.Images[i].FilePath" alt="Product Image @i" />
+                        }
+                    </div>
+                </dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $(".slick").slick({
+                dots: true,
+                arrows: true,
+                slidesToShow: 1,
+                slidesToScroll: 1,
+                draggable: true,
+                infinite: true,
+            });
+        });
+    </script>
+}

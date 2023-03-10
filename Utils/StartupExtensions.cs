@@ -1,0 +1,124 @@
+﻿using Homework.Data;
+using Homework.Data.Entities;
+using Homework.Services;
+using Homework.Services.Abstractions;
+using Homework.Services.MapperProfiles;
+using Homework.Services.MapperProfiles.Category;
+using Homework.Services.MapperProfiles.Manufacturer;
+using Homework.Services.MapperProfiles.Product;
+using Homework.Services.MapperProfiles.User;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
+namespace Homework.Utils
+{
+    public static class StartupExtensions
+    {
+        public static WebApplicationBuilder ConfigureServices(this WebApplicationBuilder builder)
+        {
+            builder.Services.AddDbContext<ShopContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+            builder.Services.AddIdentity<User, IdentityRole>()
+                .AddEntityFrameworkStores<ShopContext>()
+                .AddDefaultTokenProviders();
+
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                // Password settings
+                if (!builder.Environment.IsProduction())
+                {
+                    options.Password.RequireDigit = true;
+                    options.Password.RequiredLength = 3;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                    options.Password.RequireLowercase = false;
+                }
+                else
+                {
+                    options.Password.RequireDigit = true;
+                    options.Password.RequiredLength = 8;
+                    options.Password.RequireNonAlphanumeric = true;
+                    options.Password.RequireUppercase = true;
+                    options.Password.RequireLowercase = true;
+                }
+
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(builder.Environment.IsProduction() ? 60 : 1);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
+
+                // User settings
+                options.User.RequireUniqueEmail = true;
+            });
+
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+
+                options.LoginPath = "/Account/Login";
+                options.LogoutPath = "/Account/Logout";
+
+                options.ReturnUrlParameter = CookieAuthenticationDefaults.ReturnUrlParameter;
+            });
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+            });
+
+            builder.Services.AddAutoMapper(config =>
+            {
+                config.AddProfile<RegistrationUserProfile>();
+                config.AddProfile<ProductCreationProfile>();
+                config.AddProfile<ProductEditingProfile>();
+                config.AddProfile<CategoryCreationProfile>();
+                config.AddProfile<CategoryEditingProfile>();
+                config.AddProfile<ManufacturerCreationProfile>();
+                config.AddProfile<UserEditingProfile>();
+            });
+
+            builder.Services.AddTransient<IFileNameGenerator, UniqueFileNameGenerator>()
+                            .AddTransient<SlashFilePathNormalizer>()
+                            .AddTransient<BackSlashFilePathNormalizer>()
+                            .AddTransient<IFormImageProcessor, ProductImageSaver>();
+
+            builder.Services.AddControllersWithViews();
+
+            return builder;
+        }
+
+        public static void Configure(this WebApplication app)
+        {
+            // Configure the HTTP request pipeline.
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Home/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.MapControllerRoute(
+                name: "shop_list",
+                pattern: "Shop/List/{categoryName}",
+                defaults: new { controller = "Shop", action = "List" });
+            app.MapControllerRoute(
+                name: "shop_details",
+                pattern: "Shop/Details/{productId:int}",
+                defaults: new { controller = "Shop", action = "Details" });
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Shop}/{action=Home}/{id?}");
+        }
+    }
+}

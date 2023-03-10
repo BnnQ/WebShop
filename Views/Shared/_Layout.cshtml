@@ -1,0 +1,203 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<User> SignManager
+@inject UserManager<User> UserManager
+
+@addTagHelper Homework.TagHelpers.*, 2402LWHW
+
+@{
+    bool isModelValid = ViewData.ModelState.IsValid;
+    bool isSignInInvalid = ViewData.ModelState.ContainsKey("IsPersistent");
+}
+
+<!DOCTYPE html>
+<html lang="en" class="container-fluid">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/lib/font-awesome/css/all.min.css" />
+    <link rel="stylesheet" href="~/fonts/stylesheet.css" />
+    <link rel="stylesheet" href="~/css/slick.css" />
+    <link rel="stylesheet" href="~/css/slick-theme.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/categories.css" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="container-fluid">
+    <header id="header"
+            class="sticky-top container min-vw-100 bg-white"
+            style="height: 80px; box-shadow: 0 4px 4px rgb(34 45 74 / 10%)">
+        <div class="container-fluid">
+            <div class="container">
+                <div class="row g-3">
+                    <div class="col-md-4 col-lg-3 align-items-baseline justify-content-start" style="margin-top: 22px">
+                        <label id="categories-toggler" class="btn btn-primary w-100 text-light" for="menuTrigger">
+                            <i class="fa-solid fa-grip pe-1"></i>
+                            Product catalog
+                        </label>
+                        <input id="menuTrigger" type="checkbox" name="" />
+                        <categories-menu></categories-menu>
+                    </div>
+                    <div class="col-md-4 col-lg-6 flex-grow-1">
+                        <form method="GET" asp-controller="Shop" asp-action="Search">
+                            <div class="input-group rounded bg-white" style="border: 1px solid #e4e4e4">
+                                <input name="query" type="search" placeholder="Search..." class="form-control bg-white border-0" />
+                                <button type="submit" class="btn btn-link text-primary">
+                                    <i class="fa fa-search text-black"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-4 col-lg-3 flex-grow-1">
+                        <div class="h-100 d-flex align-items-center justify-content-center">
+                            @if (SignManager.IsSignedIn(User))
+                            {
+                                <a class="btn btn-link m-0 me-4 fs-6"
+                               asp-controller="Account"
+                               asp-action="Logout">
+                                    Logout
+                                </a>
+                                if (User.IsInRole("Admin"))
+                                {
+                                    <a class="btn btn-link m-0 me-4 fs-6"
+                               asp-controller="Admin" asp-action="Home">Admin Panel</a>
+                                }
+                                //Todo
+                                <a href="#">
+                                    <i class="fa-solid fa-basket-shopping text-black fs-5"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <button type="button"
+                                        class="btn btn-link m-0 me-4 fs-6"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#authModal"
+                                        id="modal-open">
+                                    Sign In
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    @RenderBody()
+
+    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header p-3">
+                    <div class="d-flex justify-content-evenly align-items-center w-100">
+                        <div class="form-check form-switch ms-3">
+                            <input class="form-check-input switch-input" type="checkbox" id="signInSwitch" checked />
+                            <label class="form-check-label switch-label" id="signInSwitchLabel" for="signInSwitch">Sign In</label>
+                        </div>
+                        <div class="form-check form-switch ms-3">
+                            <input class="form-check-input switch-input" type="checkbox" id="registerSwitch" />
+                            <label class="form-check-label switch-label" id="registerSwitchLabel" for="registerSwitch">Register</label>
+                        </div>
+                    </div>
+                    <button type="button"
+                            class="btn-close"
+                            style="font-size: 15px"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <partial name="_PartialSignIn" model="new SignInViewModel() { IsModelValid = isModelValid || !isSignInInvalid }"></partial>
+                    <partial name="_PartialRegister" model="new RegistrationViewModel() { IsModelValid = isModelValid || isSignInInvalid }"></partial>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/slick/slick.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(".switch-label").click(function () {
+                $(".switch-label").removeClass("active");
+                $(this).addClass("active");
+
+                if ($(this).attr("for") == "signInSwitch") {
+                    $("#registerForm").hide();
+                    $("#loginForm").show();
+                } else {
+                    $("#loginForm").hide();
+                    $("#registerForm").show();
+                }
+            });
+
+            $("#modal-open").click(function () {
+                $("#signInSwitchLabel").click();
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(() => {
+            const categoriesContainer = $("#categories-container");
+            const mdBreakpoint = 768;
+
+            function addBtnClasses() {
+                categoriesContainer
+                    .addClass("btn btn-primary")
+                    .css("color", "white")
+                    .css("padding-left", "35px")
+                    .css("white-space", "nowrap");
+                if (categoriesContainer.find("i").length === 0) {
+                    categoriesContainer.append($("<i class='fa-solid fa-grip fagrip'></i>"));
+                }
+            }
+
+            function removeBtnClasses() {
+                categoriesContainer
+                    .removeClass("btn btn-primary")
+                    .css("color", "black")
+                    .css("padding-left", "initial")
+                    .css("white-space", "normal");
+                categoriesContainer.find("i")?.remove();
+            }
+
+            // On page load, check the viewport width and add/remove classes as necessary
+            if ($(window).width() > mdBreakpoint) {
+                addBtnClasses();
+            } else {
+                removeBtnClasses();
+            }
+
+            // On window resize, check the viewport width and add/remove classes as necessary
+            $(window).resize(function () {
+                if ($(window).width() > mdBreakpoint) {
+                    addBtnClasses();
+                } else {
+                    removeBtnClasses();
+                }
+            });
+        });
+    </script>
+    @if (!isModelValid)
+    {
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $("#authModal").modal("show");
+            @if (isSignInInvalid)
+            {
+                @Html.Raw("$('#registerForm').hide();\n")
+                @Html.Raw("$('#loginForm').show();\n")
+                @Html.Raw("$('#signInSwitchLabel').click();\n")
+            }
+            else
+            {
+                @Html.Raw("$('#loginForm').hide();\n")
+                @Html.Raw("$('#registerForm').show();\n")
+                @Html.Raw("$('#registerSwitchLabel').click();\n")
+            }
+            });
+        </script>
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

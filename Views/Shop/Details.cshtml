@@ -1,0 +1,103 @@
+﻿@model Product
+@section Styles {
+    <link rel="stylesheet" href="~/css/horizontal-list.css" />
+    <link rel="stylesheet" href="~/css/product.css" />
+}
+@{
+    Queue<Category> categories = new();
+    Category? category = Model.Category;
+    while (category is not null)
+    {
+        categories.Enqueue(category);
+        category = category.ParentCategory;
+    }
+}
+
+<div id="body" class="container-fluid min-vw-100 h-100 p-0" style="margin-left: -25px!important">
+    <div class="container-fluid h-100">
+        <div class="row">
+            <ul class="horizontal-list">
+                <li>
+                    <a class="btn btn-link" asp-controller="Shop" asp-action="Home">Shop</a>
+                </li>
+                @while (categories.Count > 1)
+                {
+                    <span class="arrow">></span>
+                    <li>
+                        @{
+                            string categoryName = categories.Dequeue().Name;
+                        }
+                        <a class="btn btn-link" asp-controller="Shop" asp-action="List" asp-route-categoryName="@categoryName">@categoryName</a>
+                    </li>
+                }
+                <span class="arrow">></span>
+                @{
+                    category = categories.Dequeue();
+                }
+                <li><a class="btn btn-link" asp-controller="Shop" asp-action="List" asp-route-categoryName="@category.Name">@category.Name</a></li>
+                <span class="arrow">></span>
+                <li><p>@category.UnitName @Model.Manufacturer.Name @Model.Title</p></li>
+            </ul>
+        </div>
+        <div class="row h-100">
+            <div class="container mt-1 bg-white ps-5 pe-5 pt-1" style="height: 70%">
+                <div class="row pt-1 pb-4">
+                    <div class="col-md-6">
+                        <div class="slick w-100 text-center">
+                            @for (byte i = 0; i < Model.Images.Count; i++)
+                            {
+                                <img src="@Model.Images[i].FilePath" data-product-id="@Model.Id" alt="Product Image @i" />
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6 mt-4 mt-md-0">
+                        <p class="text-muted mt-3 mb-1" style="font-size: 12px">Product code: @Model.Id.ToString("D6")</p>
+                        <h2 class="fw-bold">@category.UnitName @Model.Manufacturer.Name @Model.Title</h2>
+                        <div class="rating mb-4">
+                            <partial name="_PartialRatingView" model="@Model.Rating" />
+                        </div>
+                        <div class="d-flex align-items-center mb-4">
+                            @if (Model.Count > 0)
+                            {
+                                <div class="in-stock text-success p-1 ps-2 pe-2 d-flex align-items-center justify-content-center me-3"
+                                     style="background-color: rgba(0, 172, 69, 0.05); font-size: 14px">
+                                    <i class="fas fa-check me-2" style="font-size: 14px"></i>
+                                    <span class="text-success fw-bold">In stock</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="in-stock text-danger p-1 ps-2 pe-2 d-flex align-items-center justify-content-center me-3"
+                                     style="background-color: rgba(172, 0, 0, 0.05); font-size: 14px">
+                                    <i class="fas fa-times me-2" style="font-size: 14px"></i>
+                                    <span class="text-danger fw-bold">Out of stock</span>
+                                </div>
+                            }
+                        </div>
+                        <p class="fw-bold mb-4" style="font-size: 24px">@string.Format("{0:N0} UAH", Model.Price)</p>
+                        @if (Model.Count > 0)
+                        {
+                            <button class="btn btn-success mb-2 w-100" style="font-size: 17px">Buy</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary disabled mb-2 w-100" style="font-size: 17px">Buy</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $(".slick").slick({
+                dots: true,
+                arrows: true,
+                draggable: true
+            });
+        });
+    </script>
+}

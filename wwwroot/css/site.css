@@ -1,0 +1,155 @@
+:root {
+    --breakpoint-xs: 0;
+    --breakpoint-sm: 576px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --breakpoint-xl: 1200px;
+    --breakpoint-xxl: 1400px;
+}
+
+* {
+    font-size: 19px;
+    font-family: "Circe", sans-serif;
+}
+
+.form-control:focus {
+    border: 1px solid #d4d4d4 !important;
+    box-shadow: none!important;
+}
+
+input[type=search].form-control:focus {
+    border: none !important;
+}
+
+.btn-link {
+    color: black !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+}
+
+    .btn-link:hover {
+        color: #00b2f2 !important;
+    }
+
+@media (max-width: 350px) {
+    header {
+        justify-content: flex-end !important;
+    }
+}
+
+.input-group {
+    background-color: #f7f8f9;
+}
+
+#body {
+    margin-top: 100px;
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    header {
+        height: 100px !important;
+    }
+
+    #body {
+        margin-top: 120px !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    header {
+        height: 200px !important;
+    }
+
+        header .container,
+        header .container-fluid {
+            min-width: 250px !important;
+        }
+
+    #body {
+        margin-top: 220px !important;
+    }
+
+    #slick-row {
+        margin-left: 0px !important;
+        margin-right: 20px !important;
+        min-width: 100% !important;
+    }
+
+    #cards-container {
+        min-width: 250px !important;
+    }
+
+        #cards-container img {
+            -o-object-fit: unset !important;
+            object-fit: unset !important;
+        }
+}
+
+#cards-container img {
+    -o-object-fit: none;
+    object-fit: none;
+}
+
+.switch-input {
+    display: none;
+}
+
+.switch-label {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    font-weight: 800;
+}
+
+    .switch-label:hover {
+        color: #00b2f2;
+    }
+
+    .switch-label.active {
+        color: #00b2f2;
+        border-bottom: 2px solid #00b2f2;
+    }
+
+        .switch-label.active:hover {
+            color: #00b2f2;
+        }
+
+.form-check {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+#loginBtn,
+#registerBtn {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.fa-star {
+    color: #D5D5D5;
+}
+
+    .fa-star.checked {
+        color: #ffc107;
+    }
+
+.slick-dots li button:before {
+    font-size: 7px !important;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+input[type=submit] {
+    margin-bottom: 10px;
+}
+
+.btn-sm > i {
+    padding-top: 5px;
+    padding-right: 2.5px;
+    padding-left: 2.5px;
+}
+/*# sourceMappingURL=site.css.map */
