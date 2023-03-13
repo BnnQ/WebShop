@@ -8,6 +8,7 @@ using Homework.Services.MapperProfiles;
 using Homework.Services.MapperProfiles.Category;
 using Homework.Services.MapperProfiles.Manufacturer;
 using Homework.Services.MapperProfiles.Product;
+using Homework.Services.MapperProfiles.Role;
 using Homework.Services.MapperProfiles.User;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -68,10 +69,7 @@ namespace Homework.Utils
             });
 
             builder.Services.AddAuthentication()
-            .AddCookie(options =>
-            {
-                options.LoginPath = new PathString("/Account/Login");
-            })
+            .AddCookie()
             .AddGoogle(options =>
             {
                 options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
@@ -109,6 +107,8 @@ namespace Homework.Utils
                 config.AddProfile<CategoryEditingProfile>();
                 config.AddProfile<ManufacturerCreationProfile>();
                 config.AddProfile<UserEditingProfile>();
+                config.AddProfile<RoleCreationProfile>();
+                config.AddProfile<RoleEditingProfile>();
             });
 
             builder.Services.AddTransient<IFileNameGenerator, UniqueFileNameGenerator>()
