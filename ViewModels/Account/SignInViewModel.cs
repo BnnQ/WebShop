@@ -21,5 +21,9 @@ namespace Homework.ViewModels.Account
         [BindNever]
         [ValidateNever]
         public bool IsModelValid { get; set; }
+
+        [BindNever]
+        [ValidateNever]
+        public string ReturnUrl { get; set; } = "/";
     }
 }

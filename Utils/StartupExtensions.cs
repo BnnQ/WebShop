@@ -1,4 +1,6 @@
-﻿using Homework.Data;
+﻿using Google.Apis.PeopleService.v1;
+using Homework.Authentication;
+using Homework.Data;
 using Homework.Data.Entities;
 using Homework.Services;
 using Homework.Services.Abstractions;
@@ -10,6 +12,7 @@ using Homework.Services.MapperProfiles.User;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace Homework.Utils
 {
@@ -64,9 +67,37 @@ namespace Homework.Utils
                 options.ReturnUrlParameter = CookieAuthenticationDefaults.ReturnUrlParameter;
             });
 
+            builder.Services.AddAuthentication()
+            .AddCookie(options =>
+            {
+                options.LoginPath = new PathString("/Account/Login");
+            })
+            .AddGoogle(options =>
+            {
+                options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+                options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+                options.SaveTokens = true;
+                options.Scope.Add(PeopleServiceService.ScopeConstants.UserBirthdayRead);
+                options.Events = new GoogleOAuthEvents();
+            })
+            .AddGitHub(options =>
+            {
+                options.ClientId = builder.Configuration["Authentication:GitHub:ClientId"];
+                options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"];
+                options.Scope.Add("user:email");
+            });
+
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+            });
+
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+                options.IdleTimeout = TimeSpan.FromMinutes(60);
             });
 
             builder.Services.AddAutoMapper(config =>
@@ -105,6 +136,7 @@ namespace Homework.Utils
 
             app.UseRouting();
 
+            app.UseSession();
             app.UseAuthentication();
             app.UseAuthorization();
 

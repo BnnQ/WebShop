@@ -1,13 +1,6 @@
 ﻿@model RegistrationViewModel
-@{
-    string? returnUrl = "/";
-    if (Context.Request.Path.HasValue && !Context.Request.Path.ToString().Contains("Account"))
-    {
-        returnUrl = Context.Request.Path + Context.Request.QueryString;
-    }
-}
 
-<form id="registerForm" method="POST" asp-controller="Account" asp-action="Register" asp-route-returnUrl="@returnUrl" style="display: none">
+<form id="registerForm" method="POST" asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl" style="display: none">
     @if (!Model.IsModelValid)
     {
          <div asp-validation-summary="All" class="text-danger"></div>

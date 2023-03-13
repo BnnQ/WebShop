@@ -6,7 +6,13 @@
 
 @{
     bool isModelValid = ViewData.ModelState.IsValid;
-    bool isSignInInvalid = ViewData.ModelState.ContainsKey("IsPersistent");
+    bool isSignInInvalid = !ViewData.ModelState.ContainsKey("ConfirmPassword");
+
+    string? returnUrl = "/";
+    if (Context.Request.Path.HasValue && !Context.Request.Path.ToString().Contains("Account"))
+    {
+        returnUrl = Context.Request.Path + Context.Request.QueryString;
+    }
 }
 
 <!DOCTYPE html>
@@ -22,6 +28,7 @@
     <link rel="stylesheet" href="~/css/slick-theme.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/categories.css" />
+    <link rel="stylesheet" href="~/css/bootstrap-social.css"/>
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="container-fluid">
@@ -107,8 +114,22 @@
                             aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <partial name="_PartialSignIn" model="new SignInViewModel() { IsModelValid = isModelValid || !isSignInInvalid }"></partial>
-                    <partial name="_PartialRegister" model="new RegistrationViewModel() { IsModelValid = isModelValid || isSignInInvalid }"></partial>
+                    <partial name="_PartialSignIn" model="new SignInViewModel() { IsModelValid = isModelValid || !isSignInInvalid, ReturnUrl = returnUrl }"></partial>
+                    <partial name="_PartialRegister" model="new RegistrationViewModel() { IsModelValid = isModelValid || isSignInInvalid, ReturnUrl = returnUrl }"></partial>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-outline-danger w-100" asp-controller="Account" asp-action="ExternalLogin" asp-route-provider="Google" asp-route-returnUrl="@returnUrl">
+                        <span>
+                            <i class="fa-brands fa-google"></i>
+                        </span> 
+                        <span>Sign In with Google</span>
+                    </a>
+                    <a class="btn btn-outline-secondary w-100" asp-controller="Account" asp-action="ExternalLogin" asp-route-provider="GitHub" asp-route-returnUrl="@returnUrl">
+                        <span>
+                            <i class="fa-brands fa-github"></i>
+                        </span>
+                        <span>Sign In with GitHub</span>
+                    </a>
                 </div>
             </div>
         </div>

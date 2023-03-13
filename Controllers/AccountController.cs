@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Homework.Controllers
 {
@@ -72,8 +73,56 @@ namespace Homework.Controllers
             return await ReturnWithErrorAsync(errorMessage);
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult ExternalLogin(string provider, string? returnUrl)
+        {
+            if (string.IsNullOrWhiteSpace(provider))
+                throw new ArgumentNullException(nameof(provider));
+
+            string redirectUrl = Url.Action(action: nameof(ExternalLoginCallback), controller: "Account", values: new { returnUrl })!;
+            var properties = signManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(properties, provider);
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = "/")
+        {
+            var info = await signManager.GetExternalLoginInfoAsync();
+            if (info is null)
+            {
+                return await RedirectToLoginAsync();
+            }
+
+            string email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            User user = await userManager.FindByEmailAsync(email);
+            if (user is null)
+            {
+                user = new User { UserName = email, Email = email };
+
+                if (DateTime.TryParse(info.Principal.FindFirstValue(ClaimTypes.DateOfBirth), out DateTime dateOfBirth) 
+                    && dateOfBirth.Year != 0)
+                {
+                    user.YearOfBirth = dateOfBirth.Year;
+                }
+
+                await userManager.RegisterCustomerAsync(user);
+            }
+
+            await userManager.AddLoginAsync(user, info);
+            var result = await signManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            if (result.Succeeded)
+            {
+                return RedirectToLocal(returnUrl);
+            }
+
+            return await RedirectToLoginAsync();
+        }
+
         [Authorize]
         [HttpGet("Logout")]
+
         public async Task<IActionResult> Logout()
         {
             await signManager.SignOutAsync();
@@ -126,6 +175,10 @@ namespace Homework.Controllers
             {
                 return RedirectToHome();
             }
+        }
+        private Task<IActionResult> RedirectToLoginAsync()
+        {
+            return ReturnWithErrorAsync("Something went wrong during external logging in.");
         }
 
         private void AddModelError(string errorMessage)
