@@ -1,5 +1,5 @@
 ﻿using Homework.Data.Entities;
-using Homework.Utils;
+using Homework.Utils.Extensions;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,10 +7,10 @@ namespace Homework.Data
 {
     public class ShopContext : IdentityDbContext<User>
     {
-        public DbSet<Category> Categories { get; set; } = null!;
-        public DbSet<ProductImage> ProductImages { get; set; } = null!;
-        public DbSet<Manufacturer> Manufacturers { get; set; } = null!;
-        public DbSet<Product> Products { get; set; } = null!;
+        public DbSet<Category>? Categories { get; set; }
+        public DbSet<ProductImage>? ProductImages { get; set; }
+        public DbSet<Manufacturer>? Manufacturers { get; set; }
+        public DbSet<Product>? Products { get; set; }
         public DbSet<BannerImage> Banners { get; set; } = null!;
 
         public ShopContext(DbContextOptions options) : base(options)
