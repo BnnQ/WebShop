@@ -4,9 +4,11 @@ using Homework.Data;
 using Homework.Data.Entities;
 using Homework.Models.Manufacturer;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Homework.Controllers
 {
+    [Authorize(policy: "ProductManagement")]
     public class ManufacturerController : Controller
     {
         private readonly ShopContext context;
@@ -21,7 +23,7 @@ namespace Homework.Controllers
         // GET: Manufacturer
         public async Task<IActionResult> List()
         {
-              return View(await context.Manufacturers.ToListAsync());
+              return View(context.Manufacturers?.Any() is true ? await context.Manufacturers.ToListAsync() : new List<Manufacturer>());
         }
 
         // GET: Manufacturer/Details/5
@@ -150,7 +152,7 @@ namespace Homework.Controllers
 
         private bool ManufacturerExists(int id)
         {
-          return context.Manufacturers.Any(e => e.Id == id);
+          return context.Manufacturers?.Any(e => e.Id == id) is true;
         }
     }
 }
