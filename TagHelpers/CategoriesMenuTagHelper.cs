@@ -32,20 +32,23 @@ namespace Homework.TagHelpers
             output.TagName = "nav";
             output.AddClass("main_nav", HtmlEncoder.Default);
 
-            var categories = await shopContext.Categories
-                .Where(category => !category.ParentCategoryId.HasValue)
-                .Include(category => category.ChildCategories)
-                .ToListAsync();
-
             var ul = new TagBuilder("ul");
             var li = new TagBuilder("li");
             var a = new TagBuilder("a");
             a.MergeAttribute("id", "categories-container");
             a.MergeAttribute("class", "w-100 h-100");
             a.InnerHtml.Append("Product catalog");
-            li.InnerHtml.AppendHtml(a);
-            li.InnerHtml.AppendHtml(await GenerateCategoriesAsync(categories));
-            ul.InnerHtml.AppendHtml(li);
+            if (shopContext.Categories?.Any() is true)
+            {
+                var categories = await shopContext.Categories
+                    .Where(category => !category.ParentCategoryId.HasValue)
+                    .Include(category => category.ChildCategories)
+                    .ToListAsync();
+                
+                li.InnerHtml.AppendHtml(a);
+                li.InnerHtml.AppendHtml(await GenerateCategoriesAsync(categories));
+            }
+            ul.InnerHtml.AppendHtml(li); 
             output.Content.SetHtmlContent(ul);
         }
 
