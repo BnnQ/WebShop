@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Homework.Data;
 using Homework.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
-using Homework.Models;
 using AutoMapper;
 using Homework.Services.Abstractions;
 using Homework.Services;
@@ -12,7 +11,7 @@ using Homework.Models.Product;
 
 namespace Homework.Controllers
 {
-    [Authorize(policy: "AdminOnly")]
+    [Authorize(policy: "ProductManagement")]
     public class ProductController : Controller
     {
         private readonly ShopContext context;
@@ -29,8 +28,8 @@ namespace Homework.Controllers
         // GET: Product
         public async Task<IActionResult> List()
         {
-            var shopContext = context.Products.Include(p => p.Category).Include(p => p.Manufacturer);
-            return View(await shopContext.ToListAsync());
+            var products = context.Products?.Include(p => p.Category).Include(p => p.Manufacturer);
+            return products is null ? View(new List<Product>()) : View(await products.ToListAsync());
         }
 
         // GET: Product/Details/5
@@ -63,13 +62,11 @@ namespace Homework.Controllers
         }
 
         // POST: Product/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductCreationDto productCreationDto, IFormFileCollection? images, [FromServices] IFormImageProcessor imageProcessor)
         {
-            Product product = mapper.Map<Product>(productCreationDto);
+            var product = mapper.Map<Product>(productCreationDto);
             if (ModelState.IsValid)
             {
                 TrySaveProductImages(product, images, imageProcessor);
@@ -78,9 +75,10 @@ namespace Homework.Controllers
                 await context.SaveChangesAsync();
                 return RedirectToAction(nameof(List));
             }
+
             ViewData["CategoryId"] = new SelectList(context.Categories, "Id", "Name", product.CategoryId);
             ViewData["ManufacturerId"] = new SelectList(context.Manufacturers, "Id", "Name", product.ManufacturerId);
-            return View(product);
+            return View(mapper.Map<Product, ProductCreationDto>(product));
         }
 
         // GET: Product/Edit/5
@@ -102,15 +100,18 @@ namespace Homework.Controllers
         }
 
         // POST: Product/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ProductEditingDto productEditingDto, IFormFileCollection? images, [FromServices] BackSlashFilePathNormalizer pathNormalizer, [FromServices] IFormImageProcessor imageProcessor)
         {
             if (ModelState.IsValid)
             {
-                Product? product = await context.Products.Where(product => product.Id == productEditingDto.Id)
+                if (context.Products?.Any() is false)
+                {
+                    return Problem("Entity set 'Products' is null.");
+                }
+                
+                var product = await context.Products!.Where(product => product.Id == productEditingDto.Id)
                                                          .Include(product => product.AssociatedBanners)
                                                          .Include(product => product.Images)
                                                          .FirstOrDefaultAsync();
@@ -158,7 +159,7 @@ namespace Homework.Controllers
             {
                 return NotFound();
             }
-
+            //Can this code be moved to the OnCreatingTicket event?
             var product = await context.Products
                 .Include(p => p.Category)
                 .Include(p => p.Manufacturer)
@@ -196,7 +197,7 @@ namespace Homework.Controllers
         #region Utils
         private bool ProductExists(int id)
         {
-            return context.Products.Any(e => e.Id == id);
+            return context.Products is not null && context.Products.Any(e => e.Id == id);
         }
 
         private IActionResult RedirectToList()
@@ -204,12 +205,12 @@ namespace Homework.Controllers
             return RedirectToAction(nameof(List));
         }
 
-        private void TrySaveProductImages(Product product, IFormFileCollection? images, IFormImageProcessor imageProcessor)
+        private static void TrySaveProductImages(Product product, IFormFileCollection? images, IFormImageProcessor imageProcessor)
         {
             product.Images = new List<ProductImage>();
             if (images?.Any() is true)
             {
-                foreach (IFormFile image in images)
+                foreach (var image in images)
                 {
                     product.Images.Add(new ProductImage()
                     {
@@ -225,13 +226,10 @@ namespace Homework.Controllers
 
         private void TryDeleteProductImages(Product product, BackSlashFilePathNormalizer pathNormalizer)
         {
-            if (product.Images?.Any() is true)
+            for (var i = product.Images.Count - 1; i >= 0; i--)
             {
-                for (int i = product.Images.Count - 1; i >= 0; i--)
-                {
-                    DeleteProductImage(product.Images[i].FilePath, pathNormalizer);
-                    product.Images.RemoveAt(i);
-                }
+                DeleteProductImage(product.Images[i].FilePath, pathNormalizer);
+                product.Images.RemoveAt(i);
             }
         }
 
