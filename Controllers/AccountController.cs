@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Homework.Models.Claim;
+using Homework.Utils.Extensions;
 
 namespace Homework.Controllers
 {
@@ -87,7 +89,7 @@ namespace Homework.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = "/")
+        public async Task<IActionResult> ExternalLoginCallback([FromServices] IEqualityComparer<ClaimInfoDto> claimDtoComparer, string returnUrl = "/")
         {
             var info = await signManager.GetExternalLoginInfoAsync();
             if (info is null)
@@ -109,11 +111,12 @@ namespace Homework.Controllers
 
                 await userManager.RegisterCustomerAsync(user);
             }
-
+            
             await userManager.AddLoginAsync(user, info);
             var result = await signManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
             if (result.Succeeded)
             {
+                await userManager.TryAddUserClaimsAsync(user, info.Principal.Claims, claimDtoComparer, mapper);
                 return RedirectToLocal(returnUrl);
             }
 
@@ -122,7 +125,6 @@ namespace Homework.Controllers
 
         [Authorize]
         [HttpGet("Logout")]
-
         public async Task<IActionResult> Logout()
         {
             await signManager.SignOutAsync();
