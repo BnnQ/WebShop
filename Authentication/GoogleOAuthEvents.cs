@@ -13,7 +13,7 @@ namespace Homework.Authentication
         {
             await base.CreatingTicket(context);
 
-            var accessToken = context.Properties.GetTokenValue("access_token");
+            var accessToken = context.AccessToken;
             var credential = GoogleCredential.FromAccessToken(accessToken);
             var service = new PeopleServiceService(new BaseClientService.Initializer
             {
