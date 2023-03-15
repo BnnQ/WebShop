@@ -12,78 +12,83 @@
     <div class="row">
         <table class="table flex-grow-1 flex-shrink-0">
             <thead>
-                <tr>
-                    <th>
-                        @Html.DisplayNameFor(model => model.UserName)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Email)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.YearOfBirth)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.Balance)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.LockoutEnabled)
-                    </th>
-                    <th>
-                        Roles
-                    </th>
-                    <th></th>
-                </tr>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.UserName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Email)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.YearOfBirth)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Balance)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.LockoutEnabled)
+                </th>
+                <th>
+                    Roles
+                </th>
+                <th></th>
+            </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.UserName)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Email)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.YearOfBirth)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Balance)
-                        </td>
-                        <td>
-                            <input type="checkbox" class="form-check-input" disabled @(await UserManager.IsLockedOutAsync(item) ? "checked" : string.Empty)/>
-                        </td>
-                        <td>
-                            @{
-                                var userRoles = await UserManager.GetRolesAsync(item);
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UserName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Email)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.YearOfBirth)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Balance)
+                    </td>
+                    <td>
+                        <input type="checkbox" class="form-check-input" disabled @(await UserManager.IsLockedOutAsync(item) ? "checked" : string.Empty)/>
+                    </td>
+                    <td>
+                        @{
+                            var userRoles = await UserManager.GetRolesAsync(item);
 
-                                if (userRoles?.Any() is true)
-                                {
-                                    var roleNames = string.Join(", ", userRoles);
-                                    <p>User roles: @roleNames</p>
-                                }
-                                else
-                                {
-                                    <p>This user has no roles</p>
-                                }
+                            if (userRoles?.Any() is true)
+                            {
+                                var roleNames = string.Join(", ", userRoles);
+                                <p>User roles: @roleNames</p>
                             }
-                        </td>
-                        <td>
-                            <ul class="list-inline m-0">
-                                <li class="list-inline-item">
-                                    <a class="btn btn-outline-warning btn-sm rounded-0" asp-action="Edit" asp-route-id="@item.Id">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </a>
-                                </li>
-                                <li class="list-inline-item">
-                                    <a class="btn btn-outline-danger btn-sm rounded-0" asp-action="Delete" asp-route-id="@item.Id">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </td>
-                    </tr>
-                }
+                            else
+                            {
+                                <p>This user has no roles</p>
+                            }
+                        }
+                    </td>
+                    <td>
+                        <ul class="list-inline m-0">
+                            <li class="list-inline-item">
+                                <a class="btn btn-outline-warning btn-sm rounded-0" data-toggle="tooltip" title="Edit user" asp-action="Edit" asp-route-id="@item.Id">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">                                                                      
+                                <a class="btn btn-outline-primary btn-sm rounded-0" data-toggle="tooltip" title="Manage user claims" asp-controller="Claim" asp-action="List" asp-route-userId="@item.Id">
+                                    <i class="fa-solid fa-address-book"></i>                                                 
+                                </a>                                                                                           
+                            </li>                                                                                              
+                            <li class="list-inline-item">
+                                <a class="btn btn-outline-danger btn-sm rounded-0" data-toggle="tooltip" title="Delete user" asp-action="Delete" asp-route-id="@item.Id">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            }
             </tbody>
         </table>
     </div>
