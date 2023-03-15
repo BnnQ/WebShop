@@ -9,7 +9,7 @@ using AutoMapper;
 
 namespace Homework.Controllers
 {
-    [Authorize(policy: "AdminOnly")]
+    [Authorize(policy: "ProductManagement")]
     public class CategoryController : Controller
     {
         private readonly ShopContext context;
@@ -24,8 +24,8 @@ namespace Homework.Controllers
         // GET: Category
         public async Task<IActionResult> List()
         {
-            var shopContext = context.Categories.Include(c => c.ParentCategory);
-            return View(await shopContext.ToListAsync());
+            var categories = context.Categories?.Include(c => c.ParentCategory);
+            return View(categories?.Any() is true ? await categories.ToListAsync() : new List<Category>());
         }
 
         // GET: Category/Details/5
@@ -75,7 +75,7 @@ namespace Homework.Controllers
         // GET: Category/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null || context.Categories == null)
+            if (id == null || context.Categories?.Any() is not true)
             {
                 return NotFound();
             }
@@ -85,7 +85,7 @@ namespace Homework.Controllers
             {
                 return NotFound();
             }
-            ViewData["ParentCategoryId"] = new SelectList(context.Categories.Where(category => category.Id != id), "Id", "Name", category.ParentCategoryId);
+            ViewData["ParentCategoryId"] = new SelectList(context.Categories.Where(item => item.Id != id), "Id", "Name", category.ParentCategoryId);
             return View(mapper.Map<Category, CategoryEditingDto>(category));
         }
 
@@ -98,7 +98,12 @@ namespace Homework.Controllers
         {
             if (ModelState.IsValid)
             {
-                Category? category = await context.Categories.Where(category => category.Id == categoryEditingDto.Id)
+                if (context.Categories?.Any() is not true)
+                {
+                    return NotFound();
+                }
+                
+                var category = await context.Categories.Where(category => category.Id == categoryEditingDto.Id)
                                                              .Include(category => category.Products)
                                                              .SingleOrDefaultAsync();
                 if (category is null)
@@ -154,7 +159,7 @@ namespace Homework.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (context.Categories == null)
+            if (context.Categories?.Any() is not true)
             {
                 return Problem("Entity set 'ShopContext.Categories'  is null.");
             }
@@ -170,7 +175,7 @@ namespace Homework.Controllers
 
         private bool CategoryExists(int id)
         {
-          return context.Categories.Any(e => e.Id == id);
+          return context.Categories?.Any(e => e.Id == id) is true;
         }
     }
 }
