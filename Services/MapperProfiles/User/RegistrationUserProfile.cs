@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Homework.ViewModels.Account;
 
-namespace Homework.Services.MapperProfiles
+namespace Homework.Services.MapperProfiles.User
 {
     public class RegistrationUserProfile : Profile
     {
