@@ -1,9 +1,9 @@
 ﻿using Homework.Data.Entities;
 using Microsoft.AspNetCore.Identity;
 
-namespace Homework.Utils
+namespace Homework.Utils.Extensions
 {
-    public static partial class IdentityExtensions
+    public static class IdentityExtensions
     {
         public static async Task<IdentityResult> RegisterCustomerAsync(this UserManager<User> userManager, User user, string? password = null) 
         {
