@@ -68,7 +68,7 @@ namespace Homework.Controllers
                 return NotFound();
             }
 
-            RoleEditingDto roleEditingDto = mapper.Map<IdentityRole, RoleEditingDto>(role);
+            var roleEditingDto = mapper.Map<IdentityRole, RoleEditingDto>(role);
             return View(roleEditingDto);
         }
 
