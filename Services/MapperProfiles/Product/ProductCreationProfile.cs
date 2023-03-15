@@ -7,7 +7,7 @@ namespace Homework.Services.MapperProfiles.Product
     {
         public ProductCreationProfile()
         {
-            CreateMap<ProductCreationDto, Data.Entities.Product>();
+            CreateMap<ProductCreationDto, Data.Entities.Product>().ReverseMap();
         }
     }
 }
