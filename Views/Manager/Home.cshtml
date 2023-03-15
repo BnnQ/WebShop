@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<div id="body" class="container-fluid">
+    <div class="container h-100 min-vh-100">
+        <div class="row min-vh-100 align-items-center justify-content-center">
+            <div class="container">
+                <div class="row">
+                    <table class="table flex-grow-1 flex-shrink-0">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <a class="btn btn-primary w-100" asp-controller="Product" asp-action="List">Manage products</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a class="btn btn-primary w-100" asp-controller="Category" asp-action="List">Manage categories</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a class="btn btn-primary w-100" asp-controller="Manufacturer" asp-action="List">Manage manufacturers</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
