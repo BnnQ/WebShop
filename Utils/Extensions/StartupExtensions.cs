@@ -2,20 +2,22 @@
 using Homework.Authentication;
 using Homework.Data;
 using Homework.Data.Entities;
+using Homework.Models.Claim;
 using Homework.Services;
 using Homework.Services.Abstractions;
 using Homework.Services.MapperProfiles;
 using Homework.Services.MapperProfiles.Category;
+using Homework.Services.MapperProfiles.Claim;
 using Homework.Services.MapperProfiles.Manufacturer;
 using Homework.Services.MapperProfiles.Product;
 using Homework.Services.MapperProfiles.Role;
 using Homework.Services.MapperProfiles.User;
+using Homework.Utils.Comparers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-
-namespace Homework.Utils
+namespace Homework.Utils.Extensions
 {
     public static class StartupExtensions
     {
@@ -88,6 +90,7 @@ namespace Homework.Utils
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("ProductManagement", policy => policy.RequireRole("Admin", "Manager"));
             });
 
             builder.Services.AddDistributedMemoryCache();
@@ -109,12 +112,17 @@ namespace Homework.Utils
                 config.AddProfile<UserEditingProfile>();
                 config.AddProfile<RoleCreationProfile>();
                 config.AddProfile<RoleEditingProfile>();
+                config.AddProfile<ClaimCreationProfile>();
+                config.AddProfile<ClaimDeletingProfile>();
+                config.AddProfile<ClaimInfoProfile>();
+                config.AddProfile<ClaimInfoCreationProfile>();
             });
 
             builder.Services.AddTransient<IFileNameGenerator, UniqueFileNameGenerator>()
                             .AddTransient<SlashFilePathNormalizer>()
                             .AddTransient<BackSlashFilePathNormalizer>()
-                            .AddTransient<IFormImageProcessor, ProductImageSaver>();
+                            .AddTransient<IFormImageProcessor, ProductImageSaver>()
+                            .AddTransient<IEqualityComparer<ClaimInfoDto>, ClaimInfoDtoEqualityComparer>();
 
             builder.Services.AddControllersWithViews();
 
