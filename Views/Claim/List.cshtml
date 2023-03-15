@@ -1,0 +1,85 @@
+﻿@using AutoMapper
+@model ListViewModel
+@inject IMapper Mapper
+@{
+    ViewData["Title"] = "List";
+}
+
+<div id="body" class="container-fluid">
+    <div class="row">
+        <a class="btn btn-success flex-grow-1" asp-action="Create" asp-route-userId="@Model.UserId">Create New</a>
+    </div>
+    <div class="row">
+        @if (Model.Claims?.Any() is true)
+        {
+          <table class="table flex-grow-1 flex-shrink-0">
+            <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Claims!.First().Type)
+                </th>
+                <th>        
+                    @Html.DisplayNameFor(model => model.Claims!.First().Value)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Claims!.First().ValueType)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Claims!.First().Issuer)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Claims!.First().OriginalIssuer)
+                </th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Claims)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Type)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Value)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ValueType)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Issuer)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.OriginalIssuer)
+                    </td>
+                    <td>
+                        @{
+                            var claimDto = Mapper.Map<Claim, ClaimInfoDto>(item);
+                            claimDto.UserId = Model.UserId;
+                        }
+                        <ul class="list-inline m-0">
+                            <li class="list-inline-item">
+                                <form asp-action="Delete" method="POST">
+                                    <input type="hidden" name="UserId" value="@Model.UserId"/>
+                                    <input type="hidden" name="Type" value="@item.Type"/>
+                                    <input type="hidden" name="Value" value="@item.Value"/>
+                                    <input type="hidden" name="ValueType" value="@item.ValueType"/>
+                                    
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-0" data-toggle="tooltip" title="Delete claim">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>   
+        }
+        else
+        {
+            <p class="text-center pt-3 fs-4">Claims not found</p>
+        }
+    </div>
+</div>
