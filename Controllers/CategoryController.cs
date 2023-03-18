@@ -6,176 +6,177 @@ using Homework.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Homework.Models.Category;
 using AutoMapper;
+using Homework.Filters;
 
-namespace Homework.Controllers
+namespace Homework.Controllers;
+
+[Authorize(policy: "ProductManagement")]
+[RetrieveModelErrorsFromRedirector]
+public class CategoryController : Controller
 {
-    [Authorize(policy: "ProductManagement")]
-    public class CategoryController : Controller
+    private readonly ShopContext context;
+    private readonly IMapper mapper;
+
+    public CategoryController(ShopContext context, IMapper mapper)
     {
-        private readonly ShopContext context;
-        private readonly IMapper mapper;
+        this.context = context;
+        this.mapper = mapper;
+    }
 
-        public CategoryController(ShopContext context, IMapper mapper)
+    // GET: Category
+    public async Task<IActionResult> List()
+    {
+        var categories = context.Categories?.Include(c => c.ParentCategory);
+        return View(categories?.Any() is true ? await categories.ToListAsync() : new List<Category>());
+    }
+
+    // GET: Category/Details/5
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null || context.Categories == null)
         {
-            this.context = context;
-            this.mapper = mapper;
+            return NotFound();
         }
 
-        // GET: Category
-        public async Task<IActionResult> List()
+        var category = await context.Categories
+            .Include(c => c.ParentCategory)
+            .FirstOrDefaultAsync(m => m.Id == id);
+        if (category == null)
         {
-            var categories = context.Categories?.Include(c => c.ParentCategory);
-            return View(categories?.Any() is true ? await categories.ToListAsync() : new List<Category>());
+            return NotFound();
         }
 
-        // GET: Category/Details/5
-        public async Task<IActionResult> Details(int? id)
+        return View(category);
+    }
+
+    // GET: Category/Create
+    public IActionResult Create()
+    {
+        ViewData["ParentCategoryId"] = new SelectList(context.Categories, "Id", "Name");
+        return View();
+    }
+
+    // POST: Category/Create
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(CategoryCreationDto categoryCreationDto)
+    {
+        if (ModelState.IsValid)
         {
-            if (id == null || context.Categories == null)
-            {
-                return NotFound();
-            }
-
-            var category = await context.Categories
-                .Include(c => c.ParentCategory)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            return View(category);
-        }
-
-        // GET: Category/Create
-        public IActionResult Create()
-        {
-            ViewData["ParentCategoryId"] = new SelectList(context.Categories, "Id", "Name");
-            return View();
-        }
-
-        // POST: Category/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CategoryCreationDto categoryCreationDto)
-        {
-            if (ModelState.IsValid)
-            {
-                Category category = mapper.Map<CategoryCreationDto, Category>(categoryCreationDto);
-                context.Add(category);
-                await context.SaveChangesAsync();
-                return RedirectToAction(nameof(List));
-            }
-            ViewData["ParentCategoryId"] = new SelectList(context.Categories, "Id", "Name", categoryCreationDto.ParentCategoryId);
-            return View(categoryCreationDto);
-        }
-
-        // GET: Category/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || context.Categories?.Any() is not true)
-            {
-                return NotFound();
-            }
-
-            var category = await context.Categories.FindAsync(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-            ViewData["ParentCategoryId"] = new SelectList(context.Categories.Where(item => item.Id != id), "Id", "Name", category.ParentCategoryId);
-            return View(mapper.Map<Category, CategoryEditingDto>(category));
-        }
-
-        // POST: Category/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(CategoryEditingDto categoryEditingDto)
-        {
-            if (ModelState.IsValid)
-            {
-                if (context.Categories?.Any() is not true)
-                {
-                    return NotFound();
-                }
-                
-                var category = await context.Categories.Where(category => category.Id == categoryEditingDto.Id)
-                                                             .Include(category => category.Products)
-                                                             .SingleOrDefaultAsync();
-                if (category is null)
-                {
-                    return NotFound();
-                }
-
-                categoryEditingDto.Products = category.Products;
-                mapper.Map(categoryEditingDto, category);
-                try
-                {
-                    context.Update(category);
-                    await context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CategoryExists(category.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(List));
-            }
-            ViewData["ParentCategoryId"] = new SelectList(context.Categories, "Id", "Name", categoryEditingDto.ParentCategoryId);
-            return View(categoryEditingDto);
-        }
-
-        // GET: Category/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || context.Categories == null)
-            {
-                return NotFound();
-            }
-
-            var category = await context.Categories
-                .Include(c => c.ParentCategory)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            return View(category);
-        }
-
-        // POST: Category/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (context.Categories?.Any() is not true)
-            {
-                return Problem("Entity set 'ShopContext.Categories'  is null.");
-            }
-            var category = await context.Categories.FindAsync(id);
-            if (category != null)
-            {
-                context.Categories.Remove(category);
-            }
-            
+            Category category = mapper.Map<CategoryCreationDto, Category>(categoryCreationDto);
+            context.Add(category);
             await context.SaveChangesAsync();
             return RedirectToAction(nameof(List));
         }
+        ViewData["ParentCategoryId"] = new SelectList(context.Categories, "Id", "Name", categoryCreationDto.ParentCategoryId);
+        return View(categoryCreationDto);
+    }
 
-        private bool CategoryExists(int id)
+    // GET: Category/Edit/5
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null || context.Categories?.Any() is not true)
         {
-          return context.Categories?.Any(e => e.Id == id) is true;
+            return NotFound();
         }
+
+        var category = await context.Categories.FindAsync(id);
+        if (category == null)
+        {
+            return NotFound();
+        }
+        ViewData["ParentCategoryId"] = new SelectList(context.Categories.Where(item => item.Id != id), "Id", "Name", category.ParentCategoryId);
+        return View(mapper.Map<Category, CategoryEditingDto>(category));
+    }
+
+    // POST: Category/Edit/5
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(CategoryEditingDto categoryEditingDto)
+    {
+        if (ModelState.IsValid)
+        {
+            if (context.Categories?.Any() is not true)
+            {
+                return NotFound();
+            }
+                
+            var category = await context.Categories.Where(category => category.Id == categoryEditingDto.Id)
+                .Include(category => category.Products)
+                .SingleOrDefaultAsync();
+            if (category is null)
+            {
+                return NotFound();
+            }
+
+            categoryEditingDto.Products = category.Products;
+            mapper.Map(categoryEditingDto, category);
+            try
+            {
+                context.Update(category);
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CategoryExists(category.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction(nameof(List));
+        }
+        ViewData["ParentCategoryId"] = new SelectList(context.Categories, "Id", "Name", categoryEditingDto.ParentCategoryId);
+        return View(categoryEditingDto);
+    }
+
+    // GET: Category/Delete/5
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null || context.Categories == null)
+        {
+            return NotFound();
+        }
+
+        var category = await context.Categories
+            .Include(c => c.ParentCategory)
+            .FirstOrDefaultAsync(m => m.Id == id);
+        if (category == null)
+        {
+            return NotFound();
+        }
+
+        return View(category);
+    }
+
+    // POST: Category/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        if (context.Categories?.Any() is not true)
+        {
+            return Problem("Entity set 'ShopContext.Categories'  is null.");
+        }
+        var category = await context.Categories.FindAsync(id);
+        if (category != null)
+        {
+            context.Categories.Remove(category);
+        }
+            
+        await context.SaveChangesAsync();
+        return RedirectToAction(nameof(List));
+    }
+
+    private bool CategoryExists(int id)
+    {
+        return context.Categories?.Any(e => e.Id == id) is true;
     }
 }

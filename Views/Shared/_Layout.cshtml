@@ -7,140 +7,143 @@
     bool isModelValid = ViewData.ModelState.IsValid;
     bool isSignInInvalid = !ViewData.ModelState.ContainsKey("ConfirmPassword");
 
-    string returnUrl = "/";
-    if (Context.Request.Path.HasValue && !Context.Request.Path.ToString().Contains("Account"))
-    {
-        returnUrl = Context.Request.Path + Context.Request.QueryString;
-    }
+    string returnUrl = Url.ReturnUrl(Context.Request);
 }
 
 <!DOCTYPE html>
 <html lang="en" class="container-fluid">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"]</title>
-    <link rel="stylesheet" href="~/css/bootstrap.css" />
-    <link rel="stylesheet" href="~/lib/font-awesome/css/all.min.css" />
-    <link rel="stylesheet" href="~/fonts/stylesheet.css" />
-    <link rel="stylesheet" href="~/css/slick.css" />
-    <link rel="stylesheet" href="~/css/slick-theme.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
-    <link rel="stylesheet" href="~/css/categories.css" />
+    <link rel="stylesheet" href="~/css/bootstrap.css"/>
+    <link rel="stylesheet" href="~/lib/font-awesome/css/all.min.css"/>
+    <link rel="stylesheet" href="~/fonts/stylesheet.css"/>
+    <link rel="stylesheet" href="~/css/slick.css"/>
+    <link rel="stylesheet" href="~/css/slick-theme.css"/>
+    <link rel="stylesheet" href="~/css/site.css"/>
+    <link rel="stylesheet" href="~/css/categories.css"/>
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="container-fluid">
-    <header id="header"
-            class="sticky-top container min-vw-100 bg-white"
-            style="height: 80px; box-shadow: 0 4px 4px rgb(34 45 74 / 10%)">
-        <div class="container-fluid">
-            <div class="container">
-                <div class="row g-3">
-                    <div class="col-md-4 col-lg-3 align-items-baseline justify-content-start" style="margin-top: 22px">
-                        <label id="categories-toggler" class="btn btn-primary w-100 text-light" for="menuTrigger">
-                            <i class="fa-solid fa-grip pe-1"></i>
-                            Product catalog
-                        </label>
-                        <input id="menuTrigger" type="checkbox" name="" />
-                        <categories-menu></categories-menu>
-                    </div>
-                    <div class="col-md-4 col-lg-6 flex-grow-1">
-                        <form method="GET" asp-controller="Shop" asp-action="Search">
-                            <div class="input-group rounded bg-white" style="border: 1px solid #e4e4e4">
-                                <input name="query" type="search" placeholder="Search..." class="form-control bg-white border-0" />
-                                <button type="submit" class="btn btn-link text-primary">
-                                    <i class="fa fa-search text-black"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="col-md-4 col-lg-3 flex-grow-1">
-                        <div class="h-100 d-flex align-items-center justify-content-center">
-                            @if (SignManager.IsSignedIn(User))
-                            {
-                                <a class="btn btn-link m-0 me-4 fs-6"
+<header id="header"
+        class="sticky-top container min-vw-100 bg-white"
+        style="height: 80px; box-shadow: 0 4px 4px rgb(34 45 74 / 10%)">
+    <div class="container-fluid">
+        <div class="container">
+            <div class="row g-3">
+                <div class="col-md-4 col-lg-3 align-items-baseline justify-content-start" style="margin-top: 22px">
+                    <label id="categories-toggler" class="btn btn-primary w-100 text-light" for="menuTrigger">
+                        <i class="fa-solid fa-grip pe-1"></i>
+                        Product catalog
+                    </label>
+                    <input id="menuTrigger" type="checkbox" name=""/>
+                    <categories-menu></categories-menu>
+                </div>
+                <div class="col-md-4 col-lg-6 flex-grow-1">
+                    <form method="GET" asp-controller="Shop" asp-action="Search">
+                        <div class="input-group rounded bg-white" style="border: 1px solid #e4e4e4">
+                            <input name="query" type="search" placeholder="Search..." class="form-control bg-white border-0"/>
+                            <button type="submit" class="btn btn-link text-primary">
+                                <i class="fa fa-search text-black"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 col-lg-3 flex-grow-1">
+                    <div class="h-100 d-flex align-items-center justify-content-center">
+                        @if (SignManager.IsSignedIn(User))
+                        {
+                            <a class="btn btn-link m-0 ms-5 me-4 fs-6"
                                asp-controller="Account"
                                asp-action="Logout">
-                                    Logout
-                                </a>
-                                if (User.IsInRole("Admin"))
-                                {
-                                    <a class="btn btn-link m-0 me-4 fs-6"
-                               asp-controller="Admin" asp-action="Home">Admin Panel</a>
-                                }
-                                else if (User.IsInRole("Manager"))
-                                {
-                                    <a class="btn btn-link m-0 me-4 fs-6"
-                                       asp-controller="Manager" asp-action="Home">Manager Panel</a>
-                                }
-                                //Todo
-                                <a href="#">
-                                    <i class="fa-solid fa-basket-shopping text-black fs-5"></i>
-                                </a>
-                            }
-                            else
+                                Logout
+                            </a>
+                            if (User.IsInRole("Admin"))
                             {
-                                <button type="button"
-                                        class="btn btn-link m-0 me-4 fs-6"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#authModal"
-                                        id="modal-open">
-                                    Sign In
-                                </button>
+                                <a class="btn btn-link m-0 me-4 fs-6"
+                                   asp-controller="Admin" asp-action="Home">
+                                    Admin Panel
+                                </a>
                             }
-                        </div>
+                            else if (User.IsInRole("Manager"))
+                            {
+                                <a class="btn btn-link m-0 me-4 fs-6"
+                                   asp-controller="Manager" asp-action="Home">
+                                    Manager Panel
+                                </a>
+                            }
+                            <a class="m-0 me-4" asp-controller="Profile" asp-action="Home">
+                                <i class="fa-solid fa-user text-black fs-5"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button type="button"
+                                    class="btn btn-link m-0 me-4 fs-6"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#authModal"
+                                    id="modal-open">
+                                Sign In
+                            </button>
+                        }
+                        <a asp-controller="Cart" asp-action="List">
+                            <i class="fa-solid fa-basket-shopping text-black fs-5"></i>
+                        </a>
                     </div>
-                </div>
-            </div>
-        </div>
-    </header>
-    @RenderBody()
-
-    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header p-3">
-                    <div class="d-flex justify-content-evenly align-items-center w-100">
-                        <div class="form-check form-switch ms-3">
-                            <input class="form-check-input switch-input" type="checkbox" id="signInSwitch" checked />
-                            <label class="form-check-label switch-label" id="signInSwitchLabel" for="signInSwitch">Sign In</label>
-                        </div>
-                        <div class="form-check form-switch ms-3">
-                            <input class="form-check-input switch-input" type="checkbox" id="registerSwitch" />
-                            <label class="form-check-label switch-label" id="registerSwitchLabel" for="registerSwitch">Register</label>
-                        </div>
-                    </div>
-                    <button type="button"
-                            class="btn-close"
-                            style="font-size: 15px"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <partial name="_PartialSignIn" model="new SignInViewModel() { IsModelValid = isModelValid || !isSignInInvalid, ReturnUrl = returnUrl }"></partial>
-                    <partial name="_PartialRegister" model="new RegistrationViewModel() { IsModelValid = isModelValid || isSignInInvalid, ReturnUrl = returnUrl }"></partial>
-                </div>
-                <div class="modal-footer">
-                    <a class="btn btn-outline-danger w-100" asp-controller="Account" asp-action="ExternalLogin" asp-route-provider="Google" asp-route-returnUrl="@returnUrl">
-                        <span>
-                            <i class="fa-brands fa-google"></i>
-                        </span> 
-                        <span>Sign In with Google</span>
-                    </a>
-                    <a class="btn btn-outline-secondary w-100" asp-controller="Account" asp-action="ExternalLogin" asp-route-provider="GitHub" asp-route-returnUrl="@returnUrl">
-                        <span>
-                            <i class="fa-brands fa-github"></i>
-                        </span>
-                        <span>Sign In with GitHub</span>
-                    </a>
                 </div>
             </div>
         </div>
     </div>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/slick/slick.min.js"></script>
-    <script>
+</header>
+@RenderBody()
+
+<div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header p-3">
+                <div class="d-flex justify-content-evenly align-items-center w-100">
+                    <div class="form-check form-switch ms-3">
+                        <input class="form-check-input switch-input" type="checkbox" id="signInSwitch" checked/>
+                        <label class="form-check-label switch-label" id="signInSwitchLabel" for="signInSwitch">Sign In</label>
+                    </div>
+                    <div class="form-check form-switch ms-3">
+                        <input class="form-check-input switch-input" type="checkbox" id="registerSwitch"/>
+                        <label class="form-check-label switch-label" id="registerSwitchLabel" for="registerSwitch">Register</label>
+                    </div>
+                </div>
+                <button type="button"
+                        class="btn-close"
+                        style="font-size: 15px"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+            </div>
+            <div class="modal-body">
+                <partial name="_PartialSignIn" model="new SignInViewModel() { IsModelValid = isModelValid || !isSignInInvalid, ReturnUrl = returnUrl }"></partial>
+                <partial name="_PartialRegister" model="new RegistrationViewModel() { IsModelValid = isModelValid || isSignInInvalid, ReturnUrl = returnUrl }"></partial>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-outline-danger w-100" asp-controller="Account" asp-action="ExternalLogin" asp-route-provider="Google" asp-route-returnUrl="@returnUrl">
+                    <span>
+                        <i class="fa-brands fa-google"></i>
+                    </span>
+                    <span>Sign In with Google</span>
+                </a>
+                <a class="btn btn-outline-secondary w-100" asp-controller="Account" asp-action="ExternalLogin" asp-route-provider="GitHub" asp-route-returnUrl="@returnUrl">
+                    <span>
+                        <i class="fa-brands fa-github"></i>
+                    </span>
+                    <span>Sign In with GitHub</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/slick/slick.min.js"></script>
+<script>
         $(document).ready(function () {
             $(".switch-label").click(function () {
                 $(".switch-label").removeClass("active");
@@ -203,9 +206,9 @@
         });
     </script>
 
-    @if (!isModelValid)
-    {
-        <script type="text/javascript">
+@if (!isModelValid)
+{
+    <script type="text/javascript">
             $(document).ready(function () {
                 $("#authModal").modal("show");
             @if (isSignInInvalid)
@@ -222,7 +225,7 @@
             }
             });
         </script>
-    }
-    @await RenderSectionAsync("Scripts", required: false)
+}
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

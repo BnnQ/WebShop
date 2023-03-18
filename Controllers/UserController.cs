@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Homework.Data.Entities;
+using Homework.Filters;
 using Homework.Models.User;
 using Homework.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Homework.Controllers
 {
     [Authorize("AdminOnly")]
+    [KeepModelErrorsOnRedirect]
+    [RetrieveModelErrorsFromRedirector]
     public class UserController : Controller
     {
         private readonly UserManager<User> userManager;

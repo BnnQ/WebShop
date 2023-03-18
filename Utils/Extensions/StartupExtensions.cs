@@ -2,10 +2,10 @@
 using Homework.Authentication;
 using Homework.Data;
 using Homework.Data.Entities;
+using Homework.Filters;
 using Homework.Models.Claim;
 using Homework.Services;
 using Homework.Services.Abstractions;
-using Homework.Services.MapperProfiles;
 using Homework.Services.MapperProfiles.Category;
 using Homework.Services.MapperProfiles.Claim;
 using Homework.Services.MapperProfiles.Manufacturer;
@@ -89,8 +89,9 @@ namespace Homework.Utils.Extensions
 
             builder.Services.AddAuthorization(options =>
             {
-                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-                options.AddPolicy("ProductManagement", policy => policy.RequireRole("Admin", "Manager"));
+                options.AddPolicy("Authenticated", policy => policy.RequireAuthenticatedUser());
+                options.AddPolicy("AdminOnly", policy => policy.RequireAuthenticatedUser().RequireRole("Admin"));
+                options.AddPolicy("ProductManagement", policy => policy.RequireAuthenticatedUser().RequireRole("Admin", "Manager"));
             });
 
             builder.Services.AddDistributedMemoryCache();
@@ -119,12 +120,17 @@ namespace Homework.Utils.Extensions
             });
 
             builder.Services.AddTransient<IFileNameGenerator, UniqueFileNameGenerator>()
-                            .AddTransient<SlashFilePathNormalizer>()
-                            .AddTransient<BackSlashFilePathNormalizer>()
-                            .AddTransient<IFormImageProcessor, ProductImageSaver>()
-                            .AddTransient<IEqualityComparer<ClaimInfoDto>, ClaimInfoDtoEqualityComparer>();
+                .AddTransient<SlashFilePathNormalizer>()
+                .AddTransient<BackSlashFilePathNormalizer>()
+                .AddTransient<IFormImageProcessor, ProductImageSaver>()
+                .AddTransient<IEqualityComparer<ClaimInfoDto>, ClaimInfoDtoEqualityComparer>()
+                .AddTransient<IPriceFormatter, UkrainianPriceFormatter>();
 
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews(options =>
+            {
+                options.Filters.Add<KeepModelErrorsOnRedirectAttribute>();
+                options.Filters.Add<RetrieveModelErrorsFromRedirectorAttribute>();
+            });
 
             return builder;
         }

@@ -1,0 +1,21 @@
+#body {
+    padding-left: 300px;
+    padding-right: 300px;
+}
+
+@media (max-width: 1000px){
+    #body {
+        padding-left: initial;
+        padding-right: initial;
+    }
+}
+
+.input-group, .form-control {
+    background-color: white!important;
+}
+
+img {
+    width: 180px; 
+    height: 180px;
+    object-fit: contain;
+}

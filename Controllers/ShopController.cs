@@ -1,107 +1,108 @@
 ﻿using Homework.Data;
 using Homework.Data.Entities;
+using Homework.Filters;
 using Homework.ViewModels.Shop;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Homework.Controllers
+namespace Homework.Controllers;
+
+[RetrieveModelErrorsFromRedirector]
+public class ShopController : Controller
 {
-    public class ShopController : Controller
+    private readonly ShopContext shopContext;
+
+    public ShopController(ShopContext shopContext)
     {
-        private readonly ShopContext shopContext;
+        this.shopContext = shopContext;
+    }
 
-        public ShopController(ShopContext shopContext)
-        {
-            this.shopContext = shopContext;
-        }
+    public async Task<IActionResult> List(string? categoryName)
+    {
+        if (string.IsNullOrWhiteSpace(categoryName))
+            return NotFound();
 
-        public async Task<IActionResult> List(string? categoryName)
-        {
-            if (string.IsNullOrWhiteSpace(categoryName))
-                return NotFound();
-
-            if (shopContext.Categories?.Any() is not true)
-                return NotFound();
+        if (shopContext.Categories?.Any() is not true)
+            return NotFound();
             
-            var category = (await shopContext.Categories.Where(category => category.Name.ToLower().Equals(categoryName.ToLower()))
-                .Include(category => category.Products!)
-                    .ThenInclude(product => product.Manufacturer)
-                    .ThenInclude(manufacturer => manufacturer.Products!)
-                    .ThenInclude(product => product.Images)
-                .ToListAsync()).FirstOrDefault();
+        var category = (await shopContext.Categories.Where(category => category.Name.ToLower().Equals(categoryName.ToLower()))
+            .Include(category => category.Products!)
+            .ThenInclude(product => product.Manufacturer)
+            .ThenInclude(manufacturer => manufacturer.Products!)
+            .ThenInclude(product => product.Images)
+            .ToListAsync()).FirstOrDefault();
 
-            if (category is null)
-                return NotFound();
+        if (category is null)
+            return NotFound();
 
-            return View(category);
+        return View(category);
+    }
+
+    public async Task<IActionResult> Home()
+    {
+        if (User.Identity?.IsAuthenticated is true && User.IsInRole("Admin"))
+        {
+            return RedirectToAction(controllerName: "Admin", actionName: "Home");
         }
 
-        public async Task<IActionResult> Home()
-        {
-            if (User.Identity?.IsAuthenticated is true && User.IsInRole("Admin"))
-            {
-                return RedirectToAction(controllerName: "Admin", actionName: "Home");
-            }
+        return View(await shopContext.Banners.ToListAsync());
+    }
 
-            return View(await shopContext.Banners.ToListAsync());
+    public async Task<IActionResult> Details(int productId)
+    {
+        if (shopContext.Products?.Any() is not true)
+        {
+            return NotFound();
         }
-
-        public async Task<IActionResult> Details(int productId)
-        {
-            if (shopContext.Products?.Any() is not true)
-            {
-                return NotFound();
-            }
             
-            var product = await shopContext.Products.Where(product => product.Id == productId)
-                                                         .Include(product => product.Manufacturer)
-                                                         .Include(product => product.Images)
-                                                         .Include(product => product.Category)
-                                                         .ThenInclude(product => product.ParentCategory)
-                                                         .SingleOrDefaultAsync();
+        var product = await shopContext.Products.Where(product => product.Id == productId)
+            .Include(product => product.Manufacturer)
+            .Include(product => product.Images)
+            .Include(product => product.Category)
+            .ThenInclude(product => product.ParentCategory)
+            .SingleOrDefaultAsync();
 
-            if (product is null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
+        if (product is null)
+        {
+            return NotFound();
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Search(string query)
+        return View(product);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Search(string query)
+    {
+        IEnumerable<Product> products = new List<Product>();
+        if (shopContext.Products?.Any() is true)
         {
-            IEnumerable<Product> products = new List<Product>();
-            if (shopContext.Products?.Any() is true)
+            if (!string.IsNullOrWhiteSpace(query))
             {
-                if (!string.IsNullOrWhiteSpace(query))
+                if (int.TryParse(query, out int id))
                 {
-                    if (int.TryParse(query, out int id))
-                    {
-                        products = await shopContext.Products.Where(product => product.Id == id)
-                            .Include(product => product.Images)
-                            .Include(product => product.Manufacturer)
-                            .Include(product => product.Category)
-                            .ToListAsync();
-                    }
-                    else
-                    {
-                        string lowercaseQuery = query.ToLower();
-                        products = await shopContext.Products.Where(product =>
-                                product.Title.ToLower().Contains(lowercaseQuery) ||
-                                product.Manufacturer.Name.ToLower().Contains(lowercaseQuery) ||
-                                product.Category.Name.ToLower().Contains(lowercaseQuery) ||
-                                product.Category.UnitName.ToLower().Contains(lowercaseQuery))
-                            .Include(product => product.Images)
-                            .Include(product => product.Manufacturer)
-                            .Include(product => product.Category)
-                            .ToListAsync();
-                    }
+                    products = await shopContext.Products.Where(product => product.Id == id)
+                        .Include(product => product.Images)
+                        .Include(product => product.Manufacturer)
+                        .Include(product => product.Category)
+                        .ToListAsync();
+                }
+                else
+                {
+                    string lowercaseQuery = query.ToLower();
+                    products = await shopContext.Products.Where(product =>
+                            product.Title.ToLower().Contains(lowercaseQuery) ||
+                            product.Manufacturer.Name.ToLower().Contains(lowercaseQuery) ||
+                            product.Category.Name.ToLower().Contains(lowercaseQuery) ||
+                            product.Category.UnitName.ToLower().Contains(lowercaseQuery))
+                        .Include(product => product.Images)
+                        .Include(product => product.Manufacturer)
+                        .Include(product => product.Category)
+                        .ToListAsync();
+                }
 
-                }   
-            }
-
-            return View(new SearchViewModel() { Products = products, Query = query });
+            }   
         }
+
+        return View(new SearchViewModel() { Products = products, Query = query });
     }
 }
