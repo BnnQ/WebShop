@@ -1,0 +1,157 @@
+@using Homework.Utils.Enums
+@using Homework.Services.Abstractions
+@model ListViewModel
+@inject IPriceFormatter PriceFormatter
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/cart.css"/>
+}
+
+<div id="body" class="container-fluid bg-white" style="padding-bottom: 10px!important">
+    <div class="row">
+        <h2 class="pt-1">Your Cart</h2>
+        <table class="table">
+            <tbody>
+            @foreach (var item in Model.Cart.Items)
+            {
+                <tr id="product-@item.Product.Id">
+                    <td>
+                        <img src="@item.Product.Images.First().FilePath" alt="Product Image">
+                    </td>
+                    <td class="product-title">@item.Product.Title</td>
+                    <td class="product-unit-price text-nowrap">@PriceFormatter.Format(item.Product.Price)</td>
+                    <td>
+                        <div class="input-group align-items-center justify-content-center gap-1" style="flex-wrap: nowrap!important">
+                            <span class="input-group-btn">
+                                <button id="remove-button" class="btn btn-sm rounded cart-item-count fw-bold" style="border-color: #e5e5e5" type="button" data-action="@QuantityActions.Subtract" data-product-id="@item.Product.Id">-</button>
+                            </span>
+                            <input id="quantity-@item.Product.Id" type="text" class="form-control input-sm product-quantity text-center rounded" style="min-width: 40px; max-width: 75px" value="@item.Count" readonly/>
+                            <span class="input-group-btn">
+                                <button id="add-button" class="btn btn-default btn-sm rounded cart-item-count fw-bold" style="border-color: #e5e5e5" type="button" data-action="@QuantityActions.Add" data-product-id="@item.Product.Id" data-available-count="@item.Product.Count">+</button>
+                            </span>
+                        </div>
+                    </td>
+                    <td id="product-total-@item.Product.Id" class="text-nowrap">@PriceFormatter.Format(item.Product.Price * item.Count)</td>
+                    <td>
+                        <a class="btn btn-outline-danger btn-sm rounded-0" data-toggle="tooltip" title="Delete item from cart" asp-controller="Cart" asp-action="RemoveFromCart" asp-route-productId="@item.Product.Id">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+            <tfoot style="border-bottom: hidden!important">
+            <tr>
+                <td colspan="3"></td>
+                <td>
+                    <strong id="total-summary" class="text-nowrap fs-5">@($"Total: {PriceFormatter.Format(Model.Cart.Items.Sum(item => item.Product.Price * item.Count))}")</strong>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="row">
+        <div class="d-flex flex-column gap-1">
+            @if (!Model.Cart.Items.Any())
+            {
+                <a class="btn btn-success disabled">Confirm purchase</a>
+            }
+            else
+            {
+                <a class="btn btn-success" asp-controller="Cart" asp-action="ConfirmPurchase" asp-route-returnUrl="@Model.ReturnUrl">Confirm purchase</a>   
+            }
+            <a class="btn btn-secondary" href="@Model.ReturnUrl">Continue shopping</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    function updateQuantityValue(quantityLabel, newValue){
+            quantityLabel.val(newValue);
+        }
+        
+        function formatPrice(price) {
+            return price.toLocaleString('uk-UA').replace(',', ' ') + ' UAH';
+        }
+        
+        function parsePrice(stringPrice) {
+            return parseInt(stringPrice.replace(/\D/g, ''));
+        }
+        
+        function recalculateProductTotal(productTotalElement, unitPrice, quantity){
+            productTotalElement.text(formatPrice(unitPrice * quantity));
+        }
+        
+        function recalculateSummaryTotal(){
+            let total = 0;
+            $('[id*="product-total"]').each(function () {
+                    const productTotal = parsePrice($(this).text());
+                    total += productTotal;
+                });
+            
+            $("#total-summary").text(`Total: ${formatPrice(total)}`);
+        }
+        
+        function onProductQuantityUpdated(productId) {
+            const productUnitPrice = $(`#product-${productId} .product-unit-price`);
+            const productQuantity = $(`#product-${productId} .product-quantity`);
+            recalculateProductTotal($(`#product-total-${productId}`), parsePrice(productUnitPrice.text()), +productQuantity.val());
+            
+            recalculateSummaryTotal();
+        }
+        
+        function getButtons(){
+            return $("#add-button, #remove-button");
+        }
+        function disableButtons(){
+            getButtons().attr("disabled", true);
+        }
+        function enableButtons(){
+            getButtons().removeAttr("disabled");
+        }
+
+        $(function () {
+            $('.cart-item-count').on('click', function () {
+                const button = $(this);
+                const productId = button.data('product-id');
+                const action = button.data('action');
+                const quantityLabel = $('#quantity-' + productId);
+                const quantity = +quantityLabel.val();
+                
+                if (action === '@QuantityActions.Subtract' && quantity <= 1)
+                    return;
+                if (action === '@QuantityActions.Add' && quantity >= parseInt(button.data('available-count')))
+                    return;
+                
+                disableButtons();
+                $.ajax({
+                    url: '@Url.Action(controller: "Cart", action: "UpdateQuantity")',
+                    type: 'POST',
+                    data: {
+                        productId: productId,
+                        action: action
+                    },
+                    success: function (result) {
+                        if (result.success) {
+                            if (action === '@QuantityActions.Add') {
+                                updateQuantityValue(quantityLabel, quantity + 1);
+                                onProductQuantityUpdated(productId);
+                            } else {
+                                updateQuantityValue(quantityLabel, quantity - 1);
+                                onProductQuantityUpdated(productId);
+                            }
+                        } else {
+                            alert('An error occurred while updating the cart item quantity.');
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while updating the cart item quantity.');
+                    }
+                });
+                
+                enableButtons();
+            });
+        });
+    </script>
+}
