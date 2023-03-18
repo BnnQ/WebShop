@@ -1,0 +1,17 @@
+@using Homework.Services.Abstractions
+@model HomeViewModel
+@inject IPriceFormatter PriceFormatter
+
+<div id="body" class="container-fluid">
+    <div class="row">
+        <h2>Hello, @Model.UserName!</h2>
+        <h3>Your balance: @PriceFormatter.Format(Model.UserBalance)</h3>
+    </div>
+    <div class="row align-items-center justify-content-center">
+        <h4>Top Up Balance</h4>
+        <form asp-action="TopUpBalance" method="POST">
+            <input name="topUpAmount" type="number" min="10" max="10000" required/>
+            <button class="btn btn-success" type="submit">Top Up</button>
+        </form>
+    </div>
+</div>
