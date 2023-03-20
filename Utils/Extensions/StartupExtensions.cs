@@ -3,6 +3,7 @@ using Homework.Authentication;
 using Homework.Data;
 using Homework.Data.Entities;
 using Homework.Filters;
+using Homework.Infrastructure.ModelBinderProviders;
 using Homework.Models.Claim;
 using Homework.Services;
 using Homework.Services.Abstractions;
@@ -15,6 +16,7 @@ using Homework.Services.MapperProfiles.User;
 using Homework.Utils.Comparers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.EntityFrameworkCore;
 
 namespace Homework.Utils.Extensions
@@ -130,6 +132,8 @@ namespace Homework.Utils.Extensions
             {
                 options.Filters.Add<KeepModelErrorsOnRedirectAttribute>();
                 options.Filters.Add<RetrieveModelErrorsFromRedirectorAttribute>();
+                
+                options.ModelBinderProviders.Insert(0, new CartModelBinderProvider());
             });
 
             return builder;
@@ -155,16 +159,29 @@ namespace Homework.Utils.Extensions
             app.UseAuthorization();
 
             app.MapControllerRoute(
-                name: "shop_list",
-                pattern: "Shop/List/{categoryName}",
-                defaults: new { controller = "Shop", action = "List" });
+                name: "shop_list_page_with_category",
+                pattern: "Shop/{categoryName}/Page{page}",
+                defaults: new { controller = "Shop", action = "List", pageSize = 8 });
+            app.MapControllerRoute(
+                name: "shop_list_page",
+                pattern: "Shop/Page{page}",
+                defaults: new { controller = "Shop", action = "List", pageSize = 8 });
             app.MapControllerRoute(
                 name: "shop_details",
                 pattern: "Shop/Details/{productId:int}",
                 defaults: new { controller = "Shop", action = "Details" });
             app.MapControllerRoute(
+                name: "shop_search",
+                pattern: "Shop/Search/{query?}",
+                defaults: new { controller = "Shop", action = "Search" });
+            app.MapControllerRoute(
+                name: "shop_list",
+                pattern: "Shop/{categoryName?}",
+                defaults: new { controller = "Shop", action = "List" });
+            app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Shop}/{action=Home}/{id?}");
+                pattern: "{controller=Home}/{action=Home}/{id?}",
+                constraints: new { controller = new RegexRouteConstraint("^(?!Shop).*") });
         }
     }
 }
