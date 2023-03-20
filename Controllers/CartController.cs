@@ -26,57 +26,39 @@ public class CartController : Controller
     }
 
     // GET
-    public IActionResult List(string? returnUrl)
+    public IActionResult List(Cart cart, string? returnUrl)
     {
         return View(new ListViewModel
-            { Cart = GetCart(), ReturnUrl = !string.IsNullOrWhiteSpace(returnUrl) ? returnUrl : "/" });
+            { Cart = cart, ReturnUrl = !string.IsNullOrWhiteSpace(returnUrl) ? returnUrl : "/" });
     }
 
-    [HttpGet]
-    public async Task<IActionResult> AddToCart(int productId, string? returnUrl)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddToCart(Cart cart, int productId, string? returnUrl)
     {
         if (shopContext.Products?.Any() is not true)
         {
             return NotFound();
         }
 
-        var product = await shopContext.Products.Where(item => item.Id == productId).Include(product => product.Images)
+        var product = await shopContext.Products.Where(item => item.Id == productId)
+            .Include(product => product.Images)
+            .Include(product => product.Manufacturer)
+            .Include(product => product.Category)
             .FirstOrDefaultAsync();
         if (product is null)
         {
             return NotFound();
         }
-
-        var cart = GetCart();
+        
         cart.AddItem(product);
-
-        SaveCart(cart);
-        return RedirectToList(returnUrl);
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> RemoveFromCart(int productId, string? returnUrl)
-    {
-        if (shopContext.Products?.Any() is not true)
-        {
-            return NotFound();
-        }
-
-        var product = await shopContext.Products.FindAsync(productId);
-        if (product is null)
-        {
-            return NotFound();
-        }
-
-        var cart = GetCart();
-        cart.RemoveItem(product);
-
-        SaveCart(cart);
+        HttpContext.Session.SaveCart(cart);
         return RedirectToList(returnUrl);
     }
 
     [HttpPost]
-    public async Task<IActionResult> UpdateQuantity(int productId, QuantityActions action)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveFromCart(Cart cart, int productId, string? returnUrl)
     {
         if (shopContext.Products?.Any() is not true)
         {
@@ -88,8 +70,26 @@ public class CartController : Controller
         {
             return NotFound();
         }
+        
+        cart.RemoveItem(product);
+        HttpContext.Session.SaveCart(cart);
+        return RedirectToList(returnUrl);
+    }
 
-        var cart = GetCart();
+    [HttpPost]
+    public async Task<IActionResult> UpdateQuantity(Cart cart, int productId, QuantityActions action)
+    {
+        if (shopContext.Products?.Any() is not true)
+        {
+            return NotFound();
+        }
+
+        var product = await shopContext.Products.FindAsync(productId);
+        if (product is null)
+        {
+            return NotFound();
+        }
+        
         var cartItem = cart.GetItemOrDefault(product);
         if (cartItem is null)
         {
@@ -108,12 +108,13 @@ public class CartController : Controller
                 throw new ArgumentOutOfRangeException(nameof(action), action, "QuantityAction does not exist");
         }
 
-        SaveCart(cart);
+        HttpContext.Session.SaveCart(cart);
         return Json(new { success = true });
     }
 
     [Authorize(policy: "Authenticated")]
-    public async Task<IActionResult> ConfirmPurchase(string returnUrl)
+    [HttpPost]
+    public async Task<IActionResult> ConfirmPurchase(Cart cart, string returnUrl)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await userManager.FindByIdAsync(userId);
@@ -123,7 +124,6 @@ public class CartController : Controller
             return NotFound();
         }
 
-        var cart = GetCart();
         if (!cart.Items.Any())
             return NotFound();
 
@@ -157,24 +157,12 @@ public class CartController : Controller
 
         await userManager.UpdateAsync(user);
         cart.Clear();
-        SaveCart(cart);
+        HttpContext.Session.SaveCart(cart);
 
         return RedirectToList(returnUrl);
     }
 
     #region Utils
-
-    public Cart GetCart()
-    {
-        var cart = HttpContext.Session.GetValueOrDefault<Cart>("cart");
-        return cart ?? new Cart();
-    }
-
-    private void SaveCart(Cart cart)
-    {
-        HttpContext.Session.SetValue("cart", cart);
-    }
-
     private IActionResult RedirectToList(string? returnUrl)
     {
         return RedirectToAction(nameof(List), routeValues: new { returnUrl });

@@ -43,7 +43,9 @@ public class Cart
         if (cartItem is null)
             throw new ArgumentNullException(nameof(cartItem));
 
-        cartItem.Count += countToAdd;
+        var newCount = cartItem.Count + countToAdd;
+        if (newCount <= cartItem.Product.Count)
+            cartItem.Count = newCount;
     }
 
     /// <exception cref="ArgumentNullException">If cart doesn't contain passed <paramref name="cartItem"/></exception>
@@ -52,7 +54,8 @@ public class Cart
         if (cartItem is null)
             throw new ArgumentNullException(nameof(cartItem));
 
-        cartItem.Count -= countToSubtract;
+        var newCount = cartItem.Count - countToSubtract;
+        cartItem.Count = Math.Max(0, newCount);
     }
     
     public CartItem? GetItemOrDefault(Data.Entities.Product product)

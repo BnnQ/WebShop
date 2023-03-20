@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Homework.Models.Domain;
 
 namespace Homework.Utils.Extensions;
 
@@ -36,6 +37,23 @@ public static class SessionExtensions
         var serializedValue = session.GetString(key);
         return !string.IsNullOrWhiteSpace(serializedValue)
             ? JsonSerializer.Deserialize<TValue>(serializedValue, SerializerOptions)
-            : default(TValue);
+            : default;
+    }
+
+    private const string CartKey = "cart";
+    public static Cart GetRequiredCart(this ISession session)
+    {
+        var cart = session.GetValueOrDefault<Cart>("cart");
+        if (cart is null)
+        {
+            cart = new Cart();
+            session.SaveCart(cart);
+        }
+
+        return cart;
+    }
+    public static void SaveCart(this ISession session, Cart cart)
+    {
+        session.SetValue(CartKey, cart);
     }
 }

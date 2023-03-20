@@ -168,7 +168,7 @@ public class AccountController : Controller
         
     private IActionResult RedirectToHome()
     {
-        return RedirectToAction(controllerName: "Shop", actionName: "Home");
+        return RedirectToAction(controllerName: "Home", actionName: "Home");
     }
 
     private IActionResult RedirectToLocal(string? url)

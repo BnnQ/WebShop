@@ -1,5 +1,7 @@
 ﻿@using Homework.Services.Abstractions
-@model Category
+@using X.PagedList.Mvc.Core
+@using X.PagedList.Web.Common
+@model ListViewModel
 @inject IPriceFormatter PriceFormatter
 
 @section Styles {
@@ -8,7 +10,7 @@
 }
 @{
     Queue<Category> categories = new();
-    var category = Model;
+    var category = Model.Category;
     while (category is not null)
     {
         categories.Enqueue(category);
@@ -23,7 +25,7 @@
         <div class="row">
             <ul class="horizontal-list">
                 <li>
-                    <a class="btn btn-link" asp-controller="Shop" asp-action="Home">Shop</a>
+                    <a class="btn btn-link" asp-controller="Home" asp-action="Home">Shop</a>
                 </li>
                 @while (categories.Count > 1)
                 {
@@ -35,21 +37,26 @@
                         <a class="btn btn-link" asp-controller="Shop" asp-action="List" asp-route-categoryName="@categoryName">@categoryName</a>
                     </li>
                 }
-                <span class="arrow">></span>
-                @{
+                @if (categories.Count > 0)
+                {
                     category = categories.Dequeue();
+                    
+                    <span class="arrow">></span>
+                    <li><p>@category.Name</p></li>
                 }
-                <li><p>@category.Name</p></li>
             </ul>
         </div>
         <div class="row">
             <div class="container">
                 <div class="row">
                     <div class="col">
-                        <h1 class="fw-bold">@category.Name</h1>
+                        @if (category is not null)
+                        {
+                            <h1 class="fw-bold">@category.Name</h1>
+                        }
                     </div>
                     <div class="col">
-                        <p class="text-end text-muted">@(category.Products?.Count ?? 0) products</p>
+                        <p class="text-end text-muted">@(Model.NumberOfProducts) products</p>
                     </div>
                 </div>
             </div>
@@ -57,13 +64,13 @@
         <div class="row">
             <div class="container">
                 <div class="row g-3">
-                    @if (category.Products?.Any() is false)
+                    @if (!Model.Products.Any())
                     {
                         <p class="text-center">Products not found</p>
                     }
                     else
                     {
-                        @foreach (var product in category.Products!)
+                        @foreach (var product in Model.Products)
                         {
                             <div class="d-flex justify-content-center col-md-6 col-xl-3 mb-4">
                                 <div class="card border-0 bg-white flex-shrink-0">
@@ -73,8 +80,8 @@
                                             <img src="@product.Images[i].FilePath" data-product-id="@product.Id" alt="Product Image @i" />
                                         }
                                     </div>
-                                    <div class="card-body">
-                                        <h5 class="card-title fw-normal">@category.UnitName @product.Manufacturer.Name @product.Title</h5>
+                                    <div class="card-body d-flex flex-column" style="justify-content: space-between">
+                                        <h5 class="card-title fw-normal">@(category?.UnitName ?? product.Category.UnitName) @product.Manufacturer.Name @product.Title</h5>
                                         <div class="rating">
                                             <partial name="_PartialRatingView" model="product.Rating" />
                                         </div>
@@ -84,12 +91,32 @@
                                                 @PriceFormatter.Format(product.Price)
                                             </p>
                                         </div>
-                                        <a class="btn btn-success w-100" style="font-size: 17px" asp-controller="Cart" asp-action="AddToCart" asp-route-productId="@product.Id" asp-route-returnUrl="@returnUrl">Buy</a>
+                                        @if (product.Count > 0)
+                                        {
+                                                <form method="POST" asp-controller="Cart" asp-action="AddToCart">
+                                                    <input type="hidden" name="productId" value="@product.Id">
+                                                    <input type="hidden" asp-for="@returnUrl">
+                                                    <button type="submit" class="btn btn-success w-100" style="font-size: 17px">Buy</button>
+                                                </form>  
+                                        }
+                                        else
+                                        {
+                                            <a class="btn btn-secondary disabled w-100" style="font-size: 17px">Buy</a>
+                                        }
                                     </div>
                                 </div>
                             </div>
                         }
                     }
+                </div>
+                <div class="row">
+                    @Html.PagedListPager(Model.Products, page => Url.Action(action: "List", values: new { page, pageSize = 8 }), new PagedListRenderOptions()
+                    {
+                        LiElementClasses = new[] { "page-item" },
+                        PageClasses = new[] { "page-link" },
+                        ActiveLiElementClass = "page-item active",
+                        UlElementClasses = new[] { "pagination justify-content-center" }
+                    })
                 </div>
             </div>
         </div>

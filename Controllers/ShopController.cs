@@ -4,6 +4,7 @@ using Homework.Filters;
 using Homework.ViewModels.Shop;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using X.PagedList;
 
 namespace Homework.Controllers;
 
@@ -17,35 +18,33 @@ public class ShopController : Controller
         this.shopContext = shopContext;
     }
 
-    public async Task<IActionResult> List(string? categoryName)
+    public async Task<IActionResult> List(string? categoryName, int page = 1, int pageSize = 8)
     {
+        if (shopContext.Products?.Any() is not true)
+            return NotFound();
+        
         if (string.IsNullOrWhiteSpace(categoryName))
-            return NotFound();
-
-        if (shopContext.Categories?.Any() is not true)
-            return NotFound();
-            
-        var category = (await shopContext.Categories.Where(category => category.Name.ToLower().Equals(categoryName.ToLower()))
-            .Include(category => category.Products!)
-            .ThenInclude(product => product.Manufacturer)
-            .ThenInclude(manufacturer => manufacturer.Products!)
-            .ThenInclude(product => product.Images)
-            .ToListAsync()).FirstOrDefault();
-
-        if (category is null)
-            return NotFound();
-
-        return View(category);
-    }
-
-    public async Task<IActionResult> Home()
-    {
-        if (User.Identity?.IsAuthenticated is true && User.IsInRole("Admin"))
         {
-            return RedirectToAction(controllerName: "Admin", actionName: "Home");
+            var products = shopContext.Products.Include(product => product.Images).Include(product => product.Manufacturer).Include(product => product.Category);
+            return View(new ListViewModel(category: null, await products.ToPagedListAsync(page, pageSize), await products.CountAsync()));
         }
+        else
+        {
+            if (shopContext.Categories?.Any() is not true)
+                return NotFound();
 
-        return View(await shopContext.Banners.ToListAsync());
+            var category = await shopContext.Categories.FirstOrDefaultAsync(item =>
+                item.Name.ToLower().Equals(categoryName.ToLower()));
+
+            if (category is null)
+                return NotFound();
+
+            var products = shopContext.Products.Where(product => product.CategoryId == category.Id)
+                .Include(product => product.Images)
+                .Include(product => product.Manufacturer);
+            
+            return View(new ListViewModel(category: null, await products.ToPagedListAsync(page, pageSize), await products.CountAsync()));
+        }
     }
 
     public async Task<IActionResult> Details(int productId)
