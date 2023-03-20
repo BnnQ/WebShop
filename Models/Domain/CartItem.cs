@@ -1,3 +1,5 @@
+using Homework.Models.Product;
+
 namespace Homework.Models.Domain;
 
 public class CartItem

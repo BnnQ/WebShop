@@ -33,9 +33,12 @@
                     </td>
                     <td id="product-total-@item.Product.Id" class="text-nowrap">@PriceFormatter.Format(item.Product.Price * item.Count)</td>
                     <td>
-                        <a class="btn btn-outline-danger btn-sm rounded-0" data-toggle="tooltip" title="Delete item from cart" asp-controller="Cart" asp-action="RemoveFromCart" asp-route-productId="@item.Product.Id">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </a>
+                        <form method="POST" asp-action="RemoveFromCart">
+                            <input type="hidden" name="productId" value="@item.Product.Id">
+                            <button class="btn btn-outline-danger btn-sm rounded-0" data-toggle="tooltip" title="Delete item from cart">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
                     </td>
                 </tr>
             }
@@ -58,7 +61,10 @@
             }
             else
             {
-                <a class="btn btn-success" asp-controller="Cart" asp-action="ConfirmPurchase" asp-route-returnUrl="@Model.ReturnUrl">Confirm purchase</a>   
+                <form method="POST" asp-controller="Cart" asp-action="ConfirmPurchase">
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl">
+                    <button class="btn btn-success w-100">Confirm purchase</button>
+                </form> 
             }
             <a class="btn btn-secondary" href="@Model.ReturnUrl">Continue shopping</a>
         </div>
