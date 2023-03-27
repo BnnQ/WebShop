@@ -9,7 +9,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Homework.Filters;
+using Homework.Services.Abstractions;
+using Homework.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using Razor.Templating.Core;
 
 namespace Homework.Controllers;
 
@@ -105,7 +108,10 @@ public class CartController : Controller
                 cart.SubtractItemCount(cartItem, 1);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(action), action, "QuantityAction does not exist");
+                throw new ArgumentOutOfRangeException(
+                    paramName: nameof(action),
+                    actualValue: action,
+                    message: "QuantityAction does not exist");
         }
 
         HttpContext.Session.SaveCart(cart);
@@ -114,7 +120,7 @@ public class CartController : Controller
 
     [Authorize(policy: "Authenticated")]
     [HttpPost]
-    public async Task<IActionResult> ConfirmPurchase(Cart cart, string returnUrl)
+    public async Task<IActionResult> ConfirmPurchase(Cart cart, string returnUrl, [FromServices] IEmailSender emailSender)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await userManager.FindByIdAsync(userId);
@@ -128,11 +134,11 @@ public class CartController : Controller
             return NotFound();
 
         var totalPrice =
-            cart.Items.Aggregate(0.0, (accumulator, item) => accumulator + item.Product.Price * item.Count);
+            cart.Items.Aggregate(seed: 0.0, (accumulator, item) => accumulator + item.Product.Price * item.Count);
 
         if (user.Balance < totalPrice)
         {
-            return BadRequest("Your balance is not enough money to make a purchase.");
+            return BadRequest(error: "Your balance is not enough money to make a purchase.");
         }
 
         if (shopContext.Products?.Any() is not true)
@@ -140,8 +146,59 @@ public class CartController : Controller
             return Problem();
         }
 
-        //*code for placing an order and creating a delivery request*
+        var generatedConfirmationCode = Guid.NewGuid().ToString();
+        HttpContext.Session.SetValue(key: "confirmationCode", value: generatedConfirmationCode);
 
+        var htmlMessageViewModel = new OrderConfirmationViewModel(cart, generatedConfirmationCode, HttpContext.GetSiteBaseUrl());
+        var htmlMessage = await RazorTemplateEngine.RenderAsync(viewName: "_OrderConfirmation", viewModel: htmlMessageViewModel);
+        await emailSender.SendEmailAsync(name: user.UserName, emailAddress: user.Email, subject: "Order confirmation", htmlMessage);
+        return RedirectToList(returnUrl);
+    }
+
+    [Authorize(policy: "Authenticated")]
+    [HttpGet]
+    public async Task<IActionResult> PurchaseConfirmed(Cart cart, string? code)
+    {
+        var session = HttpContext.Session;
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            session.SetValue(key: "confirmationCode", value: string.Empty);
+            return RedirectToList(returnUrl: null);
+        }
+        
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await userManager.FindByIdAsync(userId);
+
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        if (!cart.Items.Any())
+        {
+            return NotFound();
+        }
+
+        var confirmationCode = session.GetValueOrDefault<string>(key: "confirmationCode");
+        if (!code.Equals(confirmationCode))
+        {
+            return BadRequest(error: "Confirmation code does not match, or your order has been canceled.");
+        }
+        session.SetValue(key: "confirmationCode", value: string.Empty);
+
+        var totalPrice =
+            cart.Items.Aggregate(seed: 0.0, (accumulator, item) => accumulator + item.Product.Price * item.Count);
+
+        if (user.Balance < totalPrice)
+        {
+            return BadRequest(error: "Your balance is not enough money to make a purchase.");
+        }
+
+        if (shopContext.Products?.Any() is not true)
+        {
+            return Problem();
+        }
+        
         user.Balance -= totalPrice;
         foreach (var item in cart.Items)
         {
@@ -159,9 +216,9 @@ public class CartController : Controller
         cart.Clear();
         HttpContext.Session.SaveCart(cart);
 
-        return RedirectToList(returnUrl);
+        return RedirectToList(returnUrl: null);
     }
-
+    
     #region Utils
     private IActionResult RedirectToList(string? returnUrl)
     {

@@ -1,5 +1,6 @@
 @using Homework.Utils.Enums
 @using Homework.Services.Abstractions
+@using Homework.Utils.Extensions
 @model ListViewModel
 @inject IPriceFormatter PriceFormatter
 
@@ -69,10 +70,44 @@
             <a class="btn btn-secondary" href="@Model.ReturnUrl">Continue shopping</a>
         </div>
     </div>
+    <div class="row">
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+          <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Web Shop</strong>
+              <small>Now</small>
+              <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+              An order confirmation email has been sent to your email. Please confirm or cancel your order to continue making new purchases.
+            </div>
+          </div>
+        </div>
+    </div>
 </div>
 
+
 @section Scripts {
-    <script>
+    @if (!string.IsNullOrWhiteSpace(Context.Session.GetValueOrDefault<string>(key: "confirmationCode")))
+    {
+        <script>
+        $(function () {
+            $(".btn").addClass("disabled");
+        });
+        </script>
+        
+        <script>
+        
+    $(() => {
+        const toastLiveExample = document.getElementById('liveToast');
+        const toast = new bootstrap.Toast(toastLiveExample);
+                                                   
+        toast.show();
+        });
+    </script>
+    }
+
+<script>
     function updateQuantityValue(quantityLabel, newValue){
             quantityLabel.val(newValue);
         }
