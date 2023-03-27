@@ -443,7 +443,6 @@ FodyWeavers.xsd
 /.idea/.idea.2402LWHW/.idea/sonarlint/securityhotspotstore/c/d/cde70fc3605ec35f951e01a607a366e30e9c8dee
 /.idea/.idea.2402LWHW/.idea/sonarlint/issuestore/c/f/cffa18c3e710f71de89a1717f639f231318187e2
 /.idea/.idea.2402LWHW/.idea/sonarlint/securityhotspotstore/c/f/cffa18c3e710f71de89a1717f639f231318187e2
-/Controllers/ClaimController.cs
 /.idea/.idea.2402LWHW/.idea/sonarlint/issuestore/d/8/d8b3cd2aee92376c31228672878f7f95fd20b994
 /.idea/.idea.2402LWHW/.idea/sonarlint/securityhotspotstore/d/8/d8b3cd2aee92376c31228672878f7f95fd20b994
 /.idea/.idea.2402LWHW/.idea/sonarlint/issuestore/d/9/d9f2fc48eb8dd1ddf555c15b744e8a4f5c332b5d
@@ -467,3 +466,4 @@ FodyWeavers.xsd
 /.idea/.idea.2402LWHW/.idea/indexLayout.xml
 /.idea/.idea.2402LWHW/.idea/inspectionProfiles/Project_Default.xml
 /.idea/.idea.2402LWHW/.idea/vcs.xml
+/.gitignore
