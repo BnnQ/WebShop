@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Homework.Utils.Extensions
 @inject SignInManager<User> SignManager
 
 @addTagHelper Homework.TagHelpers.*, 2402LWHW
@@ -23,6 +24,8 @@
     <link rel="stylesheet" href="~/css/slick-theme.css"/>
     <link rel="stylesheet" href="~/css/site.css"/>
     <link rel="stylesheet" href="~/css/categories.css"/>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="container-fluid">
