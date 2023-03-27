@@ -1,4 +1,5 @@
 ﻿@using Homework.Services.Abstractions
+@using Homework.Utils.Extensions
 @using X.PagedList.Mvc.Core
 @using X.PagedList.Web.Common
 @model ListViewModel
@@ -91,13 +92,13 @@
                                                 @PriceFormatter.Format(product.Price)
                                             </p>
                                         </div>
-                                        @if (product.Count > 0)
+                                        @if (product.Count > 0 && string.IsNullOrWhiteSpace(Context.Session.GetValueOrDefault<string>(key: "confirmationCode")))
                                         {
-                                                <form method="POST" asp-controller="Cart" asp-action="AddToCart">
-                                                    <input type="hidden" name="productId" value="@product.Id">
-                                                    <input type="hidden" asp-for="@returnUrl">
-                                                    <button type="submit" class="btn btn-success w-100" style="font-size: 17px">Buy</button>
-                                                </form>  
+                                            <form method="POST" asp-controller="Cart" asp-action="AddToCart">
+                                                <input type="hidden" name="productId" value="@product.Id">
+                                                <input type="hidden" asp-for="@returnUrl">
+                                                <button type="submit" class="btn btn-success w-100" style="font-size: 17px">Buy</button>
+                                            </form>  
                                         }
                                         else
                                         {
@@ -122,6 +123,7 @@
         </div>
     </div>
 </div>
+
 @section Scripts {
     <script>
         $(document).ready(function () {
