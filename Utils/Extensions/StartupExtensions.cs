@@ -26,7 +26,7 @@ namespace Homework.Utils.Extensions
         public static WebApplicationBuilder ConfigureServices(this WebApplicationBuilder builder)
         {
             builder.Services.AddDbContext<ShopContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString(name: "Default")));
 
             builder.Services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<ShopContext>()
@@ -64,7 +64,7 @@ namespace Homework.Utils.Extensions
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.Cookie.HttpOnly = true;
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(value: 60);
 
                 options.LoginPath = "/Account/Login";
                 options.LogoutPath = "/Account/Logout";
@@ -76,24 +76,24 @@ namespace Homework.Utils.Extensions
             .AddCookie()
             .AddGoogle(options =>
             {
-                options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-                options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+                options.ClientId = builder.Configuration[key: "Authentication:Google:ClientId"];
+                options.ClientSecret = builder.Configuration[key: "Authentication:Google:ClientSecret"];
                 options.SaveTokens = true;
                 options.Scope.Add(PeopleServiceService.ScopeConstants.UserBirthdayRead);
                 options.Events = new GoogleOAuthEvents();
             })
             .AddGitHub(options =>
             {
-                options.ClientId = builder.Configuration["Authentication:GitHub:ClientId"];
-                options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"];
-                options.Scope.Add("user:email");
+                options.ClientId = builder.Configuration[key: "Authentication:GitHub:ClientId"];
+                options.ClientSecret = builder.Configuration[key: "Authentication:GitHub:ClientSecret"];
+                options.Scope.Add(item: "user:email");
             });
 
             builder.Services.AddAuthorization(options =>
             {
-                options.AddPolicy("Authenticated", policy => policy.RequireAuthenticatedUser());
-                options.AddPolicy("AdminOnly", policy => policy.RequireAuthenticatedUser().RequireRole("Admin"));
-                options.AddPolicy("ProductManagement", policy => policy.RequireAuthenticatedUser().RequireRole("Admin", "Manager"));
+                options.AddPolicy(name: "Authenticated", policy => policy.RequireAuthenticatedUser());
+                options.AddPolicy(name: "AdminOnly", policy => policy.RequireAuthenticatedUser().RequireRole("Admin"));
+                options.AddPolicy(name: "ProductManagement", policy => policy.RequireAuthenticatedUser().RequireRole("Admin", "Manager"));
             });
 
             builder.Services.AddDistributedMemoryCache();
@@ -101,7 +101,7 @@ namespace Homework.Utils.Extensions
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-                options.IdleTimeout = TimeSpan.FromMinutes(60);
+                options.IdleTimeout = TimeSpan.FromMinutes(value: 60);
             });
 
             builder.Services.AddAutoMapper(config =>
@@ -120,20 +120,23 @@ namespace Homework.Utils.Extensions
                 config.AddProfile<ClaimInfoProfile>();
                 config.AddProfile<ClaimInfoCreationProfile>();
             });
+            
+            builder.Services.AddRazorTemplating();
 
             builder.Services.AddTransient<IFileNameGenerator, UniqueFileNameGenerator>()
                 .AddTransient<SlashFilePathNormalizer>()
                 .AddTransient<BackSlashFilePathNormalizer>()
                 .AddTransient<IFormImageProcessor, ProductImageSaver>()
                 .AddTransient<IEqualityComparer<ClaimInfoDto>, ClaimInfoDtoEqualityComparer>()
-                .AddTransient<IPriceFormatter, UkrainianPriceFormatter>();
+                .AddTransient<IPriceFormatter, UkrainianPriceFormatter>()
+                .AddTransient<IEmailSender, GmailSender>();
 
             builder.Services.AddControllersWithViews(options =>
             {
                 options.Filters.Add<KeepModelErrorsOnRedirectAttribute>();
                 options.Filters.Add<RetrieveModelErrorsFromRedirectorAttribute>();
                 
-                options.ModelBinderProviders.Insert(0, new CartModelBinderProvider());
+                options.ModelBinderProviders.Insert(index: 0, new CartModelBinderProvider());
             });
 
             return builder;
@@ -144,7 +147,7 @@ namespace Homework.Utils.Extensions
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler(errorHandlingPath: "/Home/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
@@ -181,7 +184,7 @@ namespace Homework.Utils.Extensions
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Home}/{id?}",
-                constraints: new { controller = new RegexRouteConstraint("^(?!Shop).*") });
+                constraints: new { controller = new RegexRouteConstraint(regexPattern: "^(?!Shop).*") });
         }
     }
 }
